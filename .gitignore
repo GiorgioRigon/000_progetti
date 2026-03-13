@@ -6,3 +6,9 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Obsidian local state
+.obsidian/workspace.json
+.obsidian/workspaces.json
+.obsidian/cache
+.obsidian/cache/

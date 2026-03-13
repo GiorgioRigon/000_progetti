@@ -1,0 +1,12 @@
+{
+  "alwaysUpdateLinks": true,
+  "attachmentFolderPath": "Allegati",
+  "newFileLocation": "current",
+  "promptDelete": false,
+  "readableLineLength": true,
+  "showInlineTitle": true,
+  "showLineNumber": false,
+  "spellcheck": true,
+  "tabSize": 2,
+  "useMarkdownLinks": true
+}
