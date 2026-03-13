@@ -1,0 +1,186 @@
+{
+  "main": {
+    "id": "c08a26b9c631b1b7",
+    "type": "split",
+    "children": [
+      {
+        "id": "bc130823d2d3f9e0",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "ef4b3dbbae1f1449",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "30 Risorse/30 Risorse.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "30 Risorse"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "241898349ab1edf7",
+    "type": "split",
+    "children": [
+      {
+        "id": "3d6e2cd78f3f8b60",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "7ace69cc6799e510",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Esplora risorse"
+            }
+          },
+          {
+            "id": "945c7009aecbfcff",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Ricerca"
+            }
+          },
+          {
+            "id": "a622fccb2d6e883e",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Segnalibri"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "5e929908baa31737",
+    "type": "split",
+    "children": [
+      {
+        "id": "a9a8dab89996df43",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "7a226fec3cc9f309",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "30 Risorse/30 Risorse.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Riferimenti a 30 Risorse"
+            }
+          },
+          {
+            "id": "83ce57ef42ae687a",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "30 Risorse/30 Risorse.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Collegamenti in uscita da 30 Risorse"
+            }
+          },
+          {
+            "id": "e6a43684797fc58c",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Etichette"
+            }
+          },
+          {
+            "id": "2346f0cd124a93a3",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "Tutte le proprietà"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "graph:Apri vista grafo": false,
+      "canvas:Crea nuova lavagna": false,
+      "daily-notes:Apri nota del giorno": false,
+      "templates:Inserisci modello": false,
+      "command-palette:Apri riquadro comandi": false,
+      "bases:Crea nuova Base": false,
+      "obsidian-git:Open Git source control": false
+    }
+  },
+  "active": "ef4b3dbbae1f1449",
+  "lastOpenFiles": [
+    "20 Aree/20 Aree.md",
+    "30 Risorse",
+    "10 Progetti/10 Progetti.md",
+    "20 Aree",
+    "90 Archivio/Git e Obsidian.md",
+    "10 Progetti",
+    "00 Inbox",
+    "90 Archivio/90 Archivio.md",
+    "90 Archivio",
+    "30 Risorse/30 Risorse.md",
+    "01 Indice.md",
+    "00 Inbox/00 Inbox.md"
+  ]
+}
