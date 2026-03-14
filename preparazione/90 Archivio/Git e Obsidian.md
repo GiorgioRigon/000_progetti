@@ -1,6 +1,27 @@
+---
+title: Git e Obsidian
+type: guida
+status: attivo
+created: 2026-03-13
+updated: 2026-03-13
+tags:
+  - git
+  - obsidian
+  - backup
+---
+
 # Git e Obsidian
 
-Questo vault si trova gia dentro un repository Git:
+Tag: #git #obsidian #backup
+
+## Indice
+
+- [[90 Archivio|Archivio]]
+- [[01 Indice|Indice Vault]]
+
+## Contesto
+
+Questo vault si trova già dentro un repository Git:
 
 - repository: `000_progetti`
 - vault: `preparazione`

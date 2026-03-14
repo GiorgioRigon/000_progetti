@@ -4,11 +4,11 @@
     "type": "split",
     "children": [
       {
-        "id": "e92cf1ddec2b2561",
+        "id": "5817ab152cddb7cd",
         "type": "tabs",
         "children": [
           {
-            "id": "f1c90c65bc8f4283",
+            "id": "5608e99bb5aa40b7",
             "type": "leaf",
             "state": {
               "type": "empty",
@@ -90,6 +90,7 @@
             "state": {
               "type": "backlink",
               "state": {
+                "file": "10 Progetti/20 CIS/02 PRD/02 PRD.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -99,7 +100,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Riferimenti"
+              "title": "Riferimenti a 02 PRD"
             }
           },
           {
@@ -108,11 +109,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
+                "file": "10 Progetti/20 CIS/02 PRD/02 PRD.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Collegamenti in uscita"
+              "title": "Collegamenti in uscita da 02 PRD"
             }
           },
           {
@@ -162,9 +164,27 @@
       "obsidian-git:Open Git source control": false
     }
   },
-  "active": "7ace69cc6799e510",
+  "active": "5608e99bb5aa40b7",
   "lastOpenFiles": [
+    "10 Progetti/20 CIS/02 PRD/CIS PRD Obsidian.md",
+    "10 Progetti/20 CIS/02 PRD/260313 CIS PRD.md",
+    "10 Progetti/20 CIS/02 PRD/02 PRD.md",
     "10 Progetti/10 Progetti.md",
+    "10 Progetti/20 CIS/00 CIS Home.md",
+    "20 Aree/20 Aree.md",
+    "99 Templates/99 Templates.md",
+    "99 Templates/Template Nota.md",
+    "10 Progetti/20 CIS/03 Casi d'uso/03 Casi d'uso.md",
+    "10 Progetti/20 CIS/01 Discovery/01 Discovery.md",
+    "10 Progetti/20 CIS/CIS_PRD_Obsidian.md",
+    "10 Progetti/20 CIS/03 Casi d'uso/Progetto coro.md",
+    "10 Progetti/20 CIS/01 Discovery/260313 Domande.md",
+    "10 Progetti/20 CIS/01 Discovery/260313 Prompt Iniziale.md",
+    "99 Templates",
+    "10 Progetti/20 CIS/03 Casi d'uso",
+    "10 Progetti/20 CIS/02 PRD",
+    "10 Progetti/20 CIS/01 Discovery",
+    "10 Progetti/20 CIS/Non confermato 253747.crdownload",
     "10 Progetti/20 CIS/00 Commercial Intelligence System.md",
     "10 Progetti/20 CIS/Progetto coro.md",
     "10 Progetti/20 CIS/260313 CIS_prd.md",
@@ -173,14 +193,11 @@
     "10 Progetti/Non confermato 804127.crdownload",
     "10 Progetti/20 CIS/260313 Prompt Iniziale.md",
     "30 Risorse/30 Risorse.md",
-    "20 Aree/20 Aree.md",
     "30 Risorse",
     "20 Aree",
     "90 Archivio/Git e Obsidian.md",
     "10 Progetti",
-    "00 Inbox",
     "90 Archivio/90 Archivio.md",
-    "90 Archivio",
     "01 Indice.md",
     "00 Inbox/00 Inbox.md"
   ]
