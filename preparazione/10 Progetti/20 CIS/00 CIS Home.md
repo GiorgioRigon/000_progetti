@@ -4,7 +4,7 @@ type: project-home
 project: CIS
 status: attivo
 created: 2026-03-13
-updated: 2026-03-13
+updated: 2026-03-14
 tags:
   - project
   - ai
@@ -22,6 +22,7 @@ Tag: #project #ai #sales #cis
 - [[01 Discovery/01 Discovery|Discovery]]
 - [[02 PRD/02 PRD|PRD]]
 - [[03 Casi d'uso/03 Casi d'uso|Casi d'uso]]
+- [[04 Roadmap/04 Roadmap|Roadmap]]
 
 ## Panoramica
 
@@ -43,9 +44,12 @@ Hub del progetto `Commercial Intelligence System`, con materiali iniziali, doman
 
 - [[03 Casi d'uso/Progetto coro|Progetto coro]]
 
+### Roadmap
+
+- [[04 Roadmap/04 Roadmap operativa Codex|Roadmap operativa Codex]]
+
 ## Prossimi contenuti suggeriti
 
-- roadmap tecnica
 - architettura dati
 - workflow dei workbot
 - CRM e pipeline commerciale
