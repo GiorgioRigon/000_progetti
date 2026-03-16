@@ -1,0 +1,15 @@
+sources:
+  - name: websites
+    enabled: true
+    type: public_web
+    notes: Siti ufficiali di organizzazioni ed enti.
+
+  - name: directories
+    enabled: true
+    type: directory
+    notes: Directory pubbliche e repertori locali.
+
+  - name: events_portals
+    enabled: true
+    type: events
+    notes: Portali pubblici di eventi o spazi culturali.

@@ -1,0 +1,28 @@
+scoring:
+  max_score: 100
+  labels:
+    hot:
+      min: 75
+    warm:
+      min: 45
+    cold:
+      min: 20
+    exclude:
+      min: 0
+
+criteria:
+  artistic_fit:
+    weight: 35
+    description: Coerenza tra il profilo dell'ente e la proposta artistica del coro.
+  geography_fit:
+    weight: 20
+    description: Compatibilita geografica e sostenibilita logistica.
+  programming_relevance:
+    weight: 25
+    description: Presenza di stagioni, festival, rassegne o attivita concertistiche pertinenti.
+  contact_quality:
+    weight: 10
+    description: Presenza di contatti diretti, email o referenti artistici.
+  relationship_history:
+    weight: 10
+    description: Presenza di interazioni passate o legami utili.

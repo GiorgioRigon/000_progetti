@@ -1,0 +1,20 @@
+sources:
+  - name: festival_websites
+    enabled: true
+    type: public_web
+    notes: Siti di festival, stagioni concertistiche e rassegne corali.
+
+  - name: venues_and_theaters
+    enabled: true
+    type: public_web
+    notes: Siti di teatri, chiese, auditorium e spazi culturali che ospitano concerti.
+
+  - name: cultural_directories
+    enabled: true
+    type: directory
+    notes: Directory di enti culturali, associazioni musicali e organizzatori.
+
+  - name: municipality_event_pages
+    enabled: true
+    type: events
+    notes: Pagine eventi di comuni, diocesi e istituzioni culturali locali.

@@ -1,0 +1,17 @@
+project:
+  key: melodema
+  name: Melodema Outreach Engine
+  description: Ricerca mirata di opportunita concertistiche per il coro Melodema.
+  status: active
+  owner: Giorgio
+
+target:
+  sector: musica corale e programmazione culturale
+  geography: Italia nord e centro
+  lead_goal_min: 30
+  lead_goal_max: 80
+
+workflow:
+  mode: human_in_the_loop
+  allow_automatic_outreach: false
+  default_campaign_status: draft

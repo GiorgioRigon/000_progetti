@@ -1,0 +1,17 @@
+project:
+  key: template_project
+  name: Template Project
+  description: Progetto di riferimento per configurare nuove iniziative CIS.
+  status: draft
+  owner: Giorgio
+
+target:
+  sector: ""
+  geography: ""
+  lead_goal_min: 30
+  lead_goal_max: 100
+
+workflow:
+  mode: human_in_the_loop
+  allow_automatic_outreach: false
+  default_campaign_status: draft

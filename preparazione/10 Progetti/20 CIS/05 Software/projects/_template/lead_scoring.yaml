@@ -1,0 +1,23 @@
+scoring:
+  max_score: 100
+  labels:
+    hot:
+      min: 75
+    warm:
+      min: 45
+    cold:
+      min: 0
+
+criteria:
+  target_fit:
+    weight: 40
+    description: Coerenza del lead con il progetto.
+  geography_fit:
+    weight: 20
+    description: Compatibilita geografica.
+  contact_quality:
+    weight: 20
+    description: Presenza di riferimenti e canali di contatto utili.
+  relationship_history:
+    weight: 20
+    description: Presenza di memoria relazionale o interazioni pregresse.
