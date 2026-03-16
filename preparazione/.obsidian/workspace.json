@@ -11,13 +11,32 @@
             "id": "5608e99bb5aa40b7",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {},
+              "type": "markdown",
+              "state": {
+                "file": "10 Progetti/20 CIS/04 Roadmap/04 Roadmap operativa Codex.md",
+                "mode": "source",
+                "source": false
+              },
               "icon": "lucide-file",
-              "title": "Nuova scheda"
+              "title": "04 Roadmap operativa Codex"
+            }
+          },
+          {
+            "id": "7b2ee05a896dd185",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "10 Progetti/20 CIS/05 Software/README.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "README"
             }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "vertical"
@@ -49,7 +68,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "",
+                "query": ".gitignore",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -164,11 +183,29 @@
       "obsidian-git:Open Git source control": false
     }
   },
-  "active": "5608e99bb5aa40b7",
+  "active": "7b2ee05a896dd185",
   "lastOpenFiles": [
-    "10 Progetti/20 CIS/04 Roadmap/04 Roadmap.md",
+    "10 Progetti/20 CIS/05 Software/docs/DATA_MODEL.md",
+    "10 Progetti/20 CIS/04 Roadmap/Passi/260316 Passo 5.md",
+    "10 Progetti/20 CIS/05 Software/data/schema.sql",
     "10 Progetti/20 CIS/04 Roadmap/04 Roadmap operativa Codex.md",
-    "10 Progetti/20 CIS/04 Roadmap",
+    "10 Progetti/20 CIS/04 Roadmap/Passi/260316 Passo 4.md",
+    "10 Progetti/20 CIS/05 Software/docs/ARCHITECTURE.md",
+    "10 Progetti/20 CIS/04 Roadmap/Passi/260316 Passo 3.md",
+    "10 Progetti/20 CIS/05 Software/requirements.txt",
+    "10 Progetti/20 CIS/04 Roadmap/Passi/260316 Passo 2.md",
+    "10 Progetti/20 CIS/05 Software/README.md",
+    "10 Progetti/20 CIS/05 Software/docs",
+    "10 Progetti/20 CIS/05 Software/tests",
+    "10 Progetti/20 CIS/05 Software/projects",
+    "10 Progetti/20 CIS/05 Software/data",
+    "10 Progetti/20 CIS/05 Software/static",
+    "10 Progetti/20 CIS/05 Software/templates",
+    "10 Progetti/20 CIS/05 Software/app",
+    "10 Progetti/20 CIS/05 Software",
+    "10 Progetti/20 CIS/04 Roadmap/Passi/260316 Passo 1.md",
+    "10 Progetti/20 CIS/04 Roadmap/MVP_SCOPE.md",
+    "10 Progetti/20 CIS/04 Roadmap/04 Roadmap.md",
     "10 Progetti/20 CIS/02 PRD/CIS PRD Obsidian.md",
     "10 Progetti/20 CIS/02 PRD/260313 CIS PRD.md",
     "10 Progetti/20 CIS/02 PRD/02 PRD.md",
@@ -183,24 +220,6 @@
     "10 Progetti/20 CIS/03 Casi d'uso/Progetto coro.md",
     "10 Progetti/20 CIS/01 Discovery/260313 Domande.md",
     "10 Progetti/20 CIS/01 Discovery/260313 Prompt Iniziale.md",
-    "99 Templates",
-    "10 Progetti/20 CIS/03 Casi d'uso",
-    "10 Progetti/20 CIS/02 PRD",
-    "10 Progetti/20 CIS/01 Discovery",
-    "10 Progetti/20 CIS/Non confermato 253747.crdownload",
-    "10 Progetti/20 CIS/00 Commercial Intelligence System.md",
-    "10 Progetti/20 CIS/Progetto coro.md",
-    "10 Progetti/20 CIS/260313 CIS_prd.md",
-    "10 Progetti/20 CIS",
-    "10 Progetti/20 CIS/260313 Domande.md",
-    "10 Progetti/Non confermato 804127.crdownload",
-    "10 Progetti/20 CIS/260313 Prompt Iniziale.md",
-    "30 Risorse/30 Risorse.md",
-    "30 Risorse",
-    "20 Aree",
-    "90 Archivio/Git e Obsidian.md",
-    "90 Archivio/90 Archivio.md",
-    "01 Indice.md",
-    "00 Inbox/00 Inbox.md"
+    "10 Progetti/20 CIS/00 Commercial Intelligence System.md"
   ]
 }
