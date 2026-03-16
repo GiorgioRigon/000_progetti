@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ organization.name }} - CIS</title>
+  </head>
+  <body>
+    <main>
+      <h1>{{ organization.name }}</h1>
+      <p><a href="/organizations">Torna a Organizations</a></p>
+
+      <section>
+        <h2>Dati principali</h2>
+        <ul>
+          <li>ID: {{ organization.id }}</li>
+          <li>Nome: {{ organization.name }}</li>
+          <li>Citta: {{ organization.city or "-" }}</li>
+          <li>Paese: {{ organization.country or "-" }}</li>
+          <li>Sito web:
+            {% if organization.website %}
+              <a href="{{ organization.website }}" target="_blank" rel="noopener noreferrer">{{ organization.website }}</a>
+            {% else %}
+              -
+            {% endif %}
+          </li>
+          <li>Email: {{ organization.email or "-" }}</li>
+          <li>Telefono: {{ organization.phone or "-" }}</li>
+          <li>Settore: {{ organization.sector or "-" }}</li>
+          <li>Tipo: {{ organization.organization_type or "-" }}</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Modifica organization</h2>
+        <form method="post" action="/organizations/{{ organization.id }}">
+          <input type="hidden" name="form_type" value="organization">
+          <p>
+            <label for="name">Nome</label><br>
+            <input id="name" name="name" type="text" value="{{ organization.name }}" required>
+          </p>
+          <p>
+            <label for="organization_type">Tipo organization</label><br>
+            <input id="organization_type" name="organization_type" type="text" value="{{ organization.organization_type or '' }}">
+          </p>
+          <p>
+            <label for="sector">Settore</label><br>
+            <input id="sector" name="sector" type="text" value="{{ organization.sector or '' }}">
+          </p>
+          <p>
+            <label for="city">Citta</label><br>
+            <input id="city" name="city" type="text" value="{{ organization.city or '' }}">
+          </p>
+          <p>
+            <label for="region">Regione</label><br>
+            <input id="region" name="region" type="text" value="{{ organization.region or '' }}">
+          </p>
+          <p>
+            <label for="country">Paese</label><br>
+            <input id="country" name="country" type="text" value="{{ organization.country or '' }}">
+          </p>
+          <p>
+            <label for="website">Sito web</label><br>
+            <input id="website" name="website" type="url" value="{{ organization.website or '' }}">
+          </p>
+          <p>
+            <label for="email">Email</label><br>
+            <input id="email" name="email" type="email" value="{{ organization.email or '' }}">
+          </p>
+          <p>
+            <label for="phone">Telefono</label><br>
+            <input id="phone" name="phone" type="text" value="{{ organization.phone or '' }}">
+          </p>
+          <p>
+            <label for="notes">Note</label><br>
+            <textarea id="notes" name="notes" rows="5">{{ organization.notes or '' }}</textarea>
+          </p>
+          <p>
+            <button type="submit">Aggiorna organization</button>
+          </p>
+        </form>
+      </section>
+
+      <section>
+        <h2>Contatti associati</h2>
+        <form method="post" action="/organizations/{{ organization.id }}">
+          <input type="hidden" name="form_type" value="contact">
+          <p>
+            <label for="contact_full_name">Nome completo</label><br>
+            <input id="contact_full_name" name="full_name" type="text">
+          </p>
+          <p>
+            <label for="contact_first_name">Nome</label><br>
+            <input id="contact_first_name" name="first_name" type="text">
+          </p>
+          <p>
+            <label for="contact_last_name">Cognome</label><br>
+            <input id="contact_last_name" name="last_name" type="text">
+          </p>
+          <p>
+            <label for="contact_role">Ruolo</label><br>
+            <input id="contact_role" name="role" type="text">
+          </p>
+          <p>
+            <label for="contact_email">Email</label><br>
+            <input id="contact_email" name="email" type="email">
+          </p>
+          <p>
+            <label for="contact_phone">Telefono</label><br>
+            <input id="contact_phone" name="phone" type="text">
+          </p>
+          <p>
+            <label for="contact_linkedin_url">LinkedIn</label><br>
+            <input id="contact_linkedin_url" name="linkedin_url" type="url">
+          </p>
+          <p>
+            <label for="contact_notes">Note contatto</label><br>
+            <textarea id="contact_notes" name="notes" rows="4"></textarea>
+          </p>
+          <p>
+            <button type="submit">Aggiungi contatto</button>
+          </p>
+        </form>
+
+        {% if contacts %}
+          {% for contact in contacts %}
+            <article>
+              <h3>{{ contact.full_name or ((contact.first_name or "") ~ " " ~ (contact.last_name or "")).strip() or "Contatto senza nome" }}</h3>
+              <form method="post" action="/organizations/{{ organization.id }}">
+                <input type="hidden" name="form_type" value="edit_contact">
+                <input type="hidden" name="contact_id" value="{{ contact.id }}">
+                <p>
+                  <label for="contact_full_name_{{ contact.id }}">Nome completo</label><br>
+                  <input id="contact_full_name_{{ contact.id }}" name="full_name" type="text" value="{{ contact.full_name or '' }}">
+                </p>
+                <p>
+                  <label for="contact_first_name_{{ contact.id }}">Nome</label><br>
+                  <input id="contact_first_name_{{ contact.id }}" name="first_name" type="text" value="{{ contact.first_name or '' }}">
+                </p>
+                <p>
+                  <label for="contact_last_name_{{ contact.id }}">Cognome</label><br>
+                  <input id="contact_last_name_{{ contact.id }}" name="last_name" type="text" value="{{ contact.last_name or '' }}">
+                </p>
+                <p>
+                  <label for="contact_role_{{ contact.id }}">Ruolo</label><br>
+                  <input id="contact_role_{{ contact.id }}" name="role" type="text" value="{{ contact.role or '' }}">
+                </p>
+                <p>
+                  <label for="contact_email_{{ contact.id }}">Email</label><br>
+                  <input id="contact_email_{{ contact.id }}" name="email" type="email" value="{{ contact.email or '' }}">
+                </p>
+                <p>
+                  <label for="contact_phone_{{ contact.id }}">Telefono</label><br>
+                  <input id="contact_phone_{{ contact.id }}" name="phone" type="text" value="{{ contact.phone or '' }}">
+                </p>
+                <p>
+                  <label for="contact_linkedin_url_{{ contact.id }}">LinkedIn</label><br>
+                  <input id="contact_linkedin_url_{{ contact.id }}" name="linkedin_url" type="url" value="{{ contact.linkedin_url or '' }}">
+                </p>
+                <p>
+                  <label for="contact_notes_{{ contact.id }}">Note contatto</label><br>
+                  <textarea id="contact_notes_{{ contact.id }}" name="notes" rows="4">{{ contact.notes or '' }}</textarea>
+                </p>
+                <p>
+                  <button type="submit">Aggiorna contatto</button>
+                </p>
+              </form>
+            </article>
+          {% endfor %}
+        {% else %}
+          <p>Nessun contatto associato.</p>
+        {% endif %}
+      </section>
+
+      <section>
+        <h2>Note</h2>
+        {% if organization.notes %}
+          <p>{{ organization.notes }}</p>
+        {% else %}
+          <p>Nessuna nota disponibile.</p>
+        {% endif %}
+      </section>
+    </main>
+  </body>
+</html>

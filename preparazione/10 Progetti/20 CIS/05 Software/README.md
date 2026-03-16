@@ -58,3 +58,18 @@ Per controllare che Flask sia installato:
 ```bash
 python -c "import flask, sqlite3; print(flask.__version__)"
 ```
+
+## Avvio dell'app locale
+
+Dalla cartella del progetto:
+
+```bash
+cd "10 Progetti/20 CIS/05 Software"
+.venv/bin/python run.py
+```
+
+Poi apri nel browser:
+
+```text
+http://127.0.0.1:5000
+```

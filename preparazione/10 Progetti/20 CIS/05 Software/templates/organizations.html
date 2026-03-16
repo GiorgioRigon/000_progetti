@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Organizations - CIS</title>
+  </head>
+  <body>
+    <main>
+      <h1>Organizations</h1>
+      <p><a href="/">Torna alla home</a></p>
+
+      {% if import_result.errors %}
+        <section>
+          <h2>Errori import</h2>
+          <ul>
+            {% for error in import_result.errors %}
+              <li>{{ error }}</li>
+            {% endfor %}
+          </ul>
+        </section>
+      {% endif %}
+
+      {% if import_result.imported_organizations or import_result.imported_contacts %}
+        <section>
+          <h2>Esito import</h2>
+          <p>
+            Organizations importate: {{ import_result.imported_organizations }} |
+            Contatti importati: {{ import_result.imported_contacts }}
+          </p>
+        </section>
+      {% endif %}
+
+      <section>
+        <h2>Nuova organization</h2>
+        <form method="post" action="/organizations">
+          <input type="hidden" name="form_type" value="manual">
+          <p>
+            <label for="name">Nome</label><br>
+            <input id="name" name="name" type="text" required>
+          </p>
+          <p>
+            <label for="organization_type">Tipo organization</label><br>
+            <input id="organization_type" name="organization_type" type="text">
+          </p>
+          <p>
+            <label for="sector">Settore</label><br>
+            <input id="sector" name="sector" type="text">
+          </p>
+          <p>
+            <label for="city">Citta</label><br>
+            <input id="city" name="city" type="text">
+          </p>
+          <p>
+            <label for="region">Regione</label><br>
+            <input id="region" name="region" type="text">
+          </p>
+          <p>
+            <label for="country">Paese</label><br>
+            <input id="country" name="country" type="text">
+          </p>
+          <p>
+            <label for="website">Sito web</label><br>
+            <input id="website" name="website" type="url">
+          </p>
+          <p>
+            <label for="email">Email</label><br>
+            <input id="email" name="email" type="email">
+          </p>
+          <p>
+            <label for="phone">Telefono</label><br>
+            <input id="phone" name="phone" type="text">
+          </p>
+          <p>
+            <label for="notes">Note</label><br>
+            <textarea id="notes" name="notes" rows="4"></textarea>
+          </p>
+          <p>
+            <button type="submit">Salva organization</button>
+          </p>
+        </form>
+      </section>
+
+      <section>
+        <h2>Import CSV</h2>
+        <p>
+          Colonne supportate: <code>organization_name</code> obbligatoria;
+          opzionali <code>city</code>, <code>country</code>, <code>website</code>,
+          <code>organization_type</code>, <code>sector</code>,
+          <code>organization_email</code>, <code>organization_phone</code>,
+          <code>organization_notes</code>, <code>source</code>,
+          <code>contact_full_name</code>, <code>contact_first_name</code>,
+          <code>contact_last_name</code>, <code>contact_role</code>,
+          <code>contact_email</code>, <code>contact_phone</code>,
+          <code>contact_linkedin_url</code>, <code>contact_notes</code>.
+        </p>
+        <form method="post" action="/organizations" enctype="multipart/form-data">
+          <input type="hidden" name="form_type" value="csv_import">
+          <p>
+            <label for="csv_file">File CSV</label><br>
+            <input id="csv_file" name="csv_file" type="file" accept=".csv,text/csv" required>
+          </p>
+          <p>
+            <button type="submit">Importa CSV</button>
+          </p>
+        </form>
+      </section>
+
+      {% if organizations %}
+        <ul>
+          {% for organization in organizations %}
+            <li>
+              <a href="/organizations/{{ organization.id }}">
+                <strong>{{ organization.name }}</strong>
+              </a>
+              {% if organization.city %} - {{ organization.city }}{% endif %}
+              {% if organization.country %} - {{ organization.country }}{% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p>Nessuna organizzazione presente nel database.</p>
+      {% endif %}
+    </main>
+  </body>
+</html>
