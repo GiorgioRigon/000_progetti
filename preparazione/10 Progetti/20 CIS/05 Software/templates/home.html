@@ -1,16 +1,28 @@
-<!doctype html>
-<html lang="it">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>CIS</title>
-  </head>
-  <body>
-    <main>
-      <h1>Commercial Intelligence System</h1>
-      <p>CIS e attivo.</p>
-      <p>Questa e la homepage minima della dashboard locale.</p>
-      <p><a href="/organizations">Vai a Organizations</a></p>
-    </main>
-  </body>
-</html>
+{% extends "base.html" %}
+
+{% block title %}Home - CIS{% endblock %}
+
+{% block content %}
+  <section class="hero">
+    <p class="eyebrow">Local first</p>
+    <h1>Commercial Intelligence System</h1>
+    <p>
+      Dashboard locale minima per gestire organizations, contatti e import manuale
+      mantenendo sempre il controllo umano.
+    </p>
+    <div class="actions">
+      <a class="button button-primary" href="{{ url_for('organizations_list') }}">Apri organizations</a>
+      <a class="button button-secondary" href="{{ url_for('wb0_target_discovery') }}">Apri WB0</a>
+    </div>
+  </section>
+
+  <section class="card stack">
+    <h2>Stato attuale</h2>
+    <ul class="plain-list">
+      <li>Database locale unico CIS</li>
+      <li>Gestione manuale di organizations e contatti</li>
+      <li>Import CSV con validazione minima</li>
+      <li>WB0 base con output JSON riusabile per candidate organizations</li>
+    </ul>
+  </section>
+{% endblock %}

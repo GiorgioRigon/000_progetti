@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} - CIS{% endblock %}
+
+{% block content %}
+  <section class="card stack">
+    <p class="eyebrow">Errore</p>
+    <h1>{{ title }}</h1>
+    <p>{{ message }}</p>
+    <div class="actions">
+      <a class="button button-secondary" href="{{ url_for('home') }}">Torna alla home</a>
+      <a class="button" href="{{ url_for('organizations_list') }}">Vai a Organizations</a>
+    </div>
+  </section>
+{% endblock %}

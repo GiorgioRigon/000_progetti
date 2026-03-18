@@ -1,0 +1,305 @@
+{% extends "base.html" %}
+
+{% block title %}WB0 Target Discovery - CIS{% endblock %}
+
+{% block content %}
+  <section class="page-heading">
+    <div>
+      <p class="eyebrow">Workbot Layer</p>
+      <h1>WB0 Target Discovery</h1>
+      <p class="muted">
+        Brief di ricerca locale per lavorare con chatbot o ricerca manuale in modo piu ordinato,
+        mantenendo separati discovery e database operativo.
+      </p>
+    </div>
+  </section>
+
+  <section class="grid-two">
+    <section class="card">
+      <h2>{% if form_data.run_file %}Modifica run salvato{% else %}Nuovo run di ricerca{% endif %}</h2>
+      <form class="stack" method="post" action="{{ url_for('wb0_target_discovery') }}">
+        <input type="hidden" name="form_type" value="save_run">
+        <input type="hidden" name="run_file" value="{{ form_data.run_file }}">
+
+        <label for="research_goal">Obiettivo ricerca</label>
+        <textarea id="research_goal" name="research_goal" rows="3" required>{{ form_data.research_goal }}</textarea>
+
+        <label for="project_context">Contesto progetto</label>
+        <textarea id="project_context" name="project_context" rows="3" required>{{ form_data.project_context }}</textarea>
+
+        <label for="territory_target">Territorio target</label>
+        <input id="territory_target" name="territory_target" type="text" value="{{ form_data.territory_target }}" required>
+
+        <label for="target_types">Tipi di target</label>
+        <textarea id="target_types" name="target_types" rows="4" required>{{ form_data.target_types }}</textarea>
+        <p class="muted">Una voce per riga, ad esempio: comuni, diocesi, teatri, festival, associazioni culturali.</p>
+
+        <fieldset class="source-fieldset">
+          <legend>Fonti da interrogare</legend>
+          {% for source in available_sources %}
+            <label class="checkbox-row">
+              <input
+                type="checkbox"
+                name="selected_sources"
+                value="{{ source.name }}"
+                {% if source.name in form_data.selected_sources %}checked{% endif %}
+              >
+              <span>
+                <strong>{{ source.name }}</strong>
+                {% if source.notes %}
+                  <span class="muted">{{ source.notes }}</span>
+                {% endif %}
+              </span>
+            </label>
+          {% endfor %}
+        </fieldset>
+
+        <label for="research_prompt">Prompt di ricerca</label>
+        <textarea id="research_prompt" name="research_prompt" rows="8" required>{{ form_data.research_prompt }}</textarea>
+
+        <label for="prompt_variants">Varianti di prompt o query usate</label>
+        <textarea id="prompt_variants" name="prompt_variants" rows="5">{{ form_data.prompt_variants }}</textarea>
+        <p class="muted">Una variante per riga. Utile per salvare prompt corretti o iterazioni provate.</p>
+
+        <label for="inclusion_criteria">Criteri di inclusione</label>
+        <textarea id="inclusion_criteria" name="inclusion_criteria" rows="4" required>{{ form_data.inclusion_criteria }}</textarea>
+
+        <label for="exclusion_criteria">Criteri di esclusione</label>
+        <textarea id="exclusion_criteria" name="exclusion_criteria" rows="4">{{ form_data.exclusion_criteria }}</textarea>
+
+        <label for="raw_candidates">Candidate organizations</label>
+        <textarea id="raw_candidates" name="raw_candidates" rows="10" required>{{ form_data.raw_candidates }}</textarea>
+        <p class="muted">
+          Una riga per organization nel formato:
+          <code>nome | tipo | citta | regione | paese | sito | note</code>
+        </p>
+
+        <button type="submit">Salva run WB0</button>
+      </form>
+    </section>
+
+    <section class="card stack">
+      <h2>Prompt preview</h2>
+      <p class="muted">
+        Anteprima del brief di ricerca da usare nel chatbot. Nessuna esecuzione automatica: serve come supporto operativo.
+      </p>
+      {% if prompt_preview %}
+        <pre class="prompt-preview">{{ prompt_preview }}</pre>
+      {% else %}
+        <p class="muted">Compila il brief per vedere l'anteprima del prompt.</p>
+      {% endif %}
+
+      <h2>Output riusabile</h2>
+      {% if latest_output_path %}
+        <p><strong>Ultimo file JSON:</strong><br>{{ latest_output_path }}</p>
+      {% else %}
+        <p class="muted">Nessun output salvato finora.</p>
+      {% endif %}
+
+      <form method="post" action="{{ url_for('wb0_target_discovery') }}">
+        <input type="hidden" name="form_type" value="reset_latest">
+        <button type="submit" class="button button-secondary">Resetta latest.json</button>
+      </form>
+    </section>
+  </section>
+
+  <section class="card">
+    <h2>Run salvati</h2>
+    {% if saved_runs %}
+      <div class="stack">
+        {% for run in saved_runs %}
+          <article class="list-row wb0-row">
+            <div>
+              <h3>{{ run.research_goal }}</h3>
+              <p class="muted">
+                {{ run.territory_target }} | {{ run.candidate_count }} candidate | {{ run.created_at }}
+              </p>
+              <p class="muted">{{ run.filename }}</p>
+            </div>
+            <div class="actions">
+              <a class="button button-secondary" href="{{ url_for('wb0_target_discovery', run_file=run.filename) }}">Modifica</a>
+              <form method="post" action="{{ url_for('wb0_target_discovery') }}">
+                <input type="hidden" name="form_type" value="delete_run">
+                <input type="hidden" name="run_file" value="{{ run.filename }}">
+                <button type="submit">Elimina</button>
+              </form>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="muted">Nessun run salvato oltre a latest.json.</p>
+    {% endif %}
+  </section>
+
+  <section class="card">
+    <h2>Run attivo</h2>
+    {% if selected_run_file %}
+      <p class="muted">Stai lavorando sul run: <strong>{{ selected_run_file }}</strong></p>
+    {% else %}
+      <p class="muted">Seleziona un run salvato per gestire review e import nel CIS.</p>
+    {% endif %}
+    {% if active_run.candidates %}
+      <p class="muted">
+        Obiettivo: <strong>{{ active_run.research_goal }}</strong> |
+        Territorio: <strong>{{ active_run.territory_target }}</strong> |
+        Candidate: <strong>{{ active_run.candidate_count }}</strong>
+      </p>
+      {% if active_run.project_context %}
+        <p class="muted">Contesto progetto: {{ active_run.project_context }}</p>
+      {% endif %}
+      {% if active_run.target_types %}
+        <p class="muted">Tipi di target: {{ active_run.target_types | join(", ") }}</p>
+      {% endif %}
+      {% if active_run.selected_sources %}
+        <p class="muted">Fonti: {{ active_run.selected_sources | join(", ") }}</p>
+      {% endif %}
+      {% if active_run.prompt_variants %}
+        <div class="top-gap">
+          <p><strong>Varianti prompt o query usate</strong></p>
+          <ul class="plain-list">
+            {% for variant in active_run.prompt_variants %}
+              <li><code>{{ variant }}</code></li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+      {% if active_run.inclusion_criteria %}
+        <div class="top-gap">
+          <p><strong>Criteri di inclusione</strong></p>
+          <ul class="plain-list">
+            {% for item in active_run.inclusion_criteria %}
+              <li>{{ item }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+      {% if active_run.exclusion_criteria %}
+        <div class="top-gap">
+          <p><strong>Criteri di esclusione</strong></p>
+          <ul class="plain-list">
+            {% for item in active_run.exclusion_criteria %}
+              <li>{{ item }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+      <div class="stack top-gap">
+        {% for candidate in active_run.candidates %}
+          <article class="subcard stack">
+            <div class="wb0-review-header">
+              <h3>{{ candidate.name }}</h3>
+              <p class="muted">
+                {{ candidate.organization_type or "Tipo non indicato" }}
+                {% if candidate.city or candidate.region or candidate.country %}
+                  | {{ candidate.city or "-" }}{% if candidate.region %}, {{ candidate.region }}{% endif %}{% if candidate.country %}, {{ candidate.country }}{% endif %}
+                {% endif %}
+              </p>
+              {% if candidate.website %}
+                <p><a href="{{ candidate.website }}" target="_blank" rel="noopener noreferrer">{{ candidate.website }}</a></p>
+              {% endif %}
+              {% if candidate.notes %}
+                <p class="muted">{{ candidate.notes }}</p>
+              {% endif %}
+            </div>
+            <div class="detail-grid wb0-metadata">
+              <div>
+                <dt>Stato</dt>
+                <dd>{{ candidate.review_status }}</dd>
+              </div>
+              <div>
+                <dt>Fit</dt>
+                <dd>{{ candidate.fit_label or "-" }}</dd>
+              </div>
+              <div>
+                <dt>Sito confermato</dt>
+                <dd>{{ candidate.website_confirmed }}</dd>
+              </div>
+              <div>
+                <dt>Decisione finale</dt>
+                <dd>{{ candidate.final_decision }}</dd>
+              </div>
+              <div class="detail-span">
+                <dt>Note di qualificazione</dt>
+                <dd>{{ candidate.qualification_notes or "-" }}</dd>
+              </div>
+              {% if candidate.imported_organization_id %}
+                <div class="detail-span">
+                  <dt>Import nel CIS</dt>
+                  <dd>
+                    Importata come organization ID {{ candidate.imported_organization_id }}
+                    {% if candidate.imported_at %} il {{ candidate.imported_at }}{% endif %}
+                  </dd>
+                </div>
+              {% endif %}
+            </div>
+
+            {% if selected_run_file %}
+              <form class="stack" method="post" action="{{ url_for('wb0_target_discovery') }}">
+                <input type="hidden" name="form_type" value="save_candidate_review">
+                <input type="hidden" name="run_file" value="{{ selected_run_file }}">
+                <input type="hidden" name="candidate_index" value="{{ loop.index0 }}">
+
+                <div class="grid-two compact">
+                  <div>
+                    <label for="review_status_{{ loop.index0 }}">Stato</label>
+                    <select id="review_status_{{ loop.index0 }}" name="review_status">
+                      {% for option in ["da_verificare", "promettente", "scartata", "da_importare", "importata"] %}
+                        <option value="{{ option }}" {% if candidate.review_status == option %}selected{% endif %}>{{ option }}</option>
+                      {% endfor %}
+                    </select>
+                  </div>
+                  <div>
+                    <label for="fit_label_{{ loop.index0 }}">Fit</label>
+                    <select id="fit_label_{{ loop.index0 }}" name="fit_label">
+                      {% for option in ["", "alto", "medio", "basso"] %}
+                        <option value="{{ option }}" {% if (candidate.fit_label or "") == option %}selected{% endif %}>{{ option or "non indicato" }}</option>
+                      {% endfor %}
+                    </select>
+                  </div>
+                </div>
+
+                <div class="grid-two compact">
+                  <div>
+                    <label for="website_confirmed_{{ loop.index0 }}">Sito confermato</label>
+                    <select id="website_confirmed_{{ loop.index0 }}" name="website_confirmed">
+                      {% for option in ["da_verificare", "si", "no"] %}
+                        <option value="{{ option }}" {% if candidate.website_confirmed == option %}selected{% endif %}>{{ option }}</option>
+                      {% endfor %}
+                    </select>
+                  </div>
+                  <div>
+                    <label for="final_decision_{{ loop.index0 }}">Decisione finale</label>
+                    <select id="final_decision_{{ loop.index0 }}" name="final_decision">
+                      {% for option in ["da_valutare", "promuovere", "da_importare", "scartare", "importata"] %}
+                        <option value="{{ option }}" {% if candidate.final_decision == option %}selected{% endif %}>{{ option }}</option>
+                      {% endfor %}
+                    </select>
+                  </div>
+                </div>
+
+                <label for="qualification_notes_{{ loop.index0 }}">Note di qualificazione</label>
+                <textarea id="qualification_notes_{{ loop.index0 }}" name="qualification_notes" rows="4">{{ candidate.qualification_notes or "" }}</textarea>
+
+                <div class="actions">
+                  <button type="submit">Salva review</button>
+                </div>
+              </form>
+
+              <form method="post" action="{{ url_for('wb0_target_discovery') }}">
+                <input type="hidden" name="form_type" value="import_candidate">
+                <input type="hidden" name="run_file" value="{{ selected_run_file }}">
+                <input type="hidden" name="candidate_index" value="{{ loop.index0 }}">
+                <button type="submit" class="button button-secondary" {% if candidate.imported_organization_id %}disabled{% endif %}>
+                  Importa nel CIS
+                </button>
+              </form>
+            {% endif %}
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="muted">Nessun risultato WB0 disponibile.</p>
+    {% endif %}
+  </section>
+{% endblock %}

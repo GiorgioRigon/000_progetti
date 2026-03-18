@@ -11,7 +11,7 @@ tags:
   - cis
   - sviluppo
 ---
-
+Controlla se è stato implementato il passo 16
 # CIS - Roadmap operativa Codex
 
 Tag: #roadmap #codex #cis #sviluppo
@@ -158,65 +158,137 @@ Prompt:
 Implementa un flusso semplice per importare lead da CSV dentro organizations e contacts, con validazione minima e gestione errori leggibile.
 ```
 
+### Fase 3 bis - Consolidamento operativo prima dei Workbot
+
+16. Estendere la gestione manuale delle organization.
+Prompt:
+
+```text
+Estendi la form manuale di creazione organization con i principali campi gia presenti nel database e aggiungi nella pagina dettaglio organization una form semplice per modificare manualmente questi campi: name, organization_type, sector, city, region, country, website, email, phone, notes.
+```
+
+17. Aggiungere la gestione manuale dei contatti associati a una organization.
+Prompt:
+
+```text
+Aggiungi la gestione manuale dei contatti associati a una organization dalla pagina dettaglio, con creazione semplice di full_name, first_name, last_name, role, email, phone, linkedin_url e notes.
+```
+
+18. Aggiungere la modifica manuale dei contatti gia inseriti.
+Prompt:
+
+```text
+Aggiungi la modifica manuale dei contatti gia inseriti nella pagina dettaglio organization, mantenendo il codice e l'interfaccia semplici.
+```
+
+19. Migliorare UX minima della dashboard operativa.
+Prompt:
+
+```text
+Migliora la dashboard Flask mantenendo tutto semplice: navigazione chiara tra home, organizations e dettaglio organization, messaggi piu leggibili per salvataggio e import, e visualizzazione leggermente piu chiara dei dati principali.
+```
+
+20. Aggiungere logging e gestione errori minima dei flussi manuali.
+Prompt:
+
+```text
+Aggiungi logging basilare e gestione errori leggibile per avvio app, import CSV, inserimento organization e gestione contatti, senza complicare l'architettura.
+```
+
+21. Preparare un dataset demo realistico e verificare il flusso manuale.
+Prompt:
+
+```text
+Crea un dataset demo piccolo ma realistico per il progetto melodema e verifica il flusso manuale completo: import, inserimento organization, modifica organization, inserimento contatti, modifica contatti e visualizzazione in dashboard.
+```
+
 ### Fase 4 - Workbot essenziali
 
-16. Implementare WB0 in versione base.
+22. Implementare WB0 in versione base.
 Prompt:
 
 ```text
 Implementa WB0 Target Discovery in versione base non-automatica: deve ricevere keyword e area geografica, produrre una lista strutturata di candidate organizations e salvare il risultato in un formato riusabile. Niente scraping complesso per ora.
 ```
 
-17. Implementare WB1 in versione base.
+22bis. Aggiungere modifica ed eliminazione dei risultati salvati di WB0.
+Prompt:
+
+```text
+Estendi WB0 Target Discovery con una gestione semplice dei risultati gia salvati: visualizzazione piu chiara dell'ultimo run, possibilita di modificare manualmente i dati delle candidate organizations gia inserite e possibilita di eliminare un run salvato o resettare latest.json. Mantieni tutto locale, leggibile e senza complicare l'architettura.
+```
+
+22tris. Estendere WB0 a ricerca assistita non fragile.
+Prompt:
+
+```text
+Estendi WB0 Target Discovery con una prima ricerca assistita non fragile: l'utente deve poter inserire o selezionare fonti e query manuali, raccogliere candidate organizations in modo guidato e salvare il risultato strutturato. Nessuno scraping complesso o autonomo; human in the loop sempre attivo.
+```
+
+22 quater. Rendere WB0 utile come filtro operativo prima del database CIS.
+Prompt:
+
+```text
+Estendi WB0 Target Discovery in modo che le candidate organizations non siano solo un archivio di ricerca, ma un vero filtro operativo prima dell'import nel database CIS. Aggiungi per ogni candidate una verifica minima e una decisione manuale, con campi semplici come stato, fit, sito confermato, note di qualificazione e decisione finale. Permetti di marcare una candidate come da importare nel CIS, mantenendo separati discovery e database operativo. Mantieni tutto locale, leggibile, human in the loop e senza automazioni fragili.
+```
+
+22 quinquies. Rifattorizzare il run di WB0 per ricerca via chatbot e futura automazione.
+Prompt:
+
+```text
+Rifattorizza la struttura del run di WB0 Target Discovery per renderla piu veloce da usare nella ricerca manuale via chatbot e piu adatta a evoluzioni future automatiche. Sostituisci i parametri attuali troppo sovrapposti con una struttura piu chiara che distingua almeno: obiettivo ricerca, contesto progetto, territorio target, tipi di target, fonti da interrogare, prompt di ricerca, varianti di prompt o query usate, criteri di inclusione, criteri di esclusione, candidate organizations e note di verifica. Mantieni tutto locale, leggibile, human in the loop e compatibile con il ruolo di WB0 come filtro operativo prima del database CIS.
+```
+
+23. Implementare WB1 in versione base.
 Prompt:
 
 ```text
 Implementa WB1 Contact Hunter in versione semplice: dato un lead gia presente, permetti di arricchirlo con email, telefono, referente, ruolo, sito e social. Inizia da inserimento manuale o semiautomatico, senza automazioni fragili.
 ```
 
-18. Implementare WB2 Lead Qualifier.
+24. Implementare WB2 Lead Qualifier.
 Prompt:
 
 ```text
 Implementa WB2 Lead Qualifier usando regole semplici configurabili dal file lead_scoring.yaml. Deve produrre lead_score, lead_label, motivazioni, rischi e azioni suggerite.
 ```
 
-19. Mostrare il punteggio lead nella dashboard.
+25. Mostrare il punteggio lead nella dashboard.
 Prompt:
 
 ```text
 Collega il Lead Qualifier alla dashboard e mostra score, label e motivazioni nella pagina organization.
 ```
 
-20. Implementare WB3 Strategy Builder.
+26. Implementare WB3 Strategy Builder.
 Prompt:
 
 ```text
 Implementa WB3 Strategy Builder in forma iniziale: per ogni lead qualificato suggerisci strategia di contatto, canale consigliato e motivo.
 ```
 
-21. Implementare WB4 Outreach Drafter.
+27. Implementare WB4 Outreach Drafter.
 Prompt:
 
 ```text
 Implementa WB4 Outreach Drafter per generare bozze di email partendo dai template del progetto e dai dati del lead. Le bozze devono essere sempre modificabili manualmente.
 ```
 
-22. Salvare bozze e storico comunicazioni.
+28. Salvare bozze e storico comunicazioni.
 Prompt:
 
 ```text
 Aggiungi il salvataggio delle bozze nel database usando messages e outreach_actions, e mostra lo storico nella pagina organization.
 ```
 
-23. Implementare WB5 Follow-up Planner.
+29. Implementare WB5 Follow-up Planner.
 Prompt:
 
 ```text
 Implementa WB5 Follow-up Planner in forma base: suggerisci quando ricontattare, con quale canale e con quale messaggio sintetico.
 ```
 
-24. Implementare relationship memory.
+30. Implementare relationship memory.
 Prompt:
 
 ```text
@@ -225,42 +297,42 @@ Implementa una prima versione di relationship_memory per salvare note relazional
 
 ### Fase 5 - Rifinitura e consolidamento
 
-25. Rifinire UX minima della dashboard.
+31. Rifinire UX minima della dashboard.
 Prompt:
 
 ```text
 Migliora la dashboard Flask mantenendo tutto semplice: navigazione chiara, home, organizations, dettaglio organization, campaigns e stato attivita.
 ```
 
-26. Aggiungere logging e gestione errori.
+32. Aggiungere logging e gestione errori.
 Prompt:
 
 ```text
 Aggiungi logging basilare e gestione errori leggibile per import, database, qualificazione e generazione bozze.
 ```
 
-27. Preparare dati demo.
+33. Preparare dati demo.
 Prompt:
 
 ```text
 Crea un dataset demo piccolo ma realistico per il progetto melodema, utile a testare end-to-end il flusso discovery > qualification > draft.
 ```
 
-28. Eseguire il primo test end-to-end.
+34. Eseguire il primo test end-to-end.
 Prompt:
 
 ```text
 Verifica e sistema il flusso completo minimo del CIS: creazione db, caricamento progetto melodema, inserimento lead, qualificazione, bozza outreach e visualizzazione in dashboard.
 ```
 
-29. Documentare uso operativo.
+35. Documentare uso operativo.
 Prompt:
 
 ```text
 Crea docs/OPERATIONS.md pensato per un principiante: come avviare il progetto, creare il db, caricare un progetto, inserire lead, qualificare e generare bozze.
 ```
 
-30. Preparare la fase 2 con LLM.
+36. Preparare la fase 2 con LLM.
 Prompt:
 
 ```text
@@ -269,9 +341,11 @@ Crea docs/PHASE2_LLM.md con un piano prudente per introdurre LLM locali o cloud 
 
 ## Ordine consigliato
 
-Se vuoi procedere in modo prudente, completa prima i passi da 1 a 14. A quel punto avrai una base reale: struttura software, database, configurazioni, app Flask e gestione manuale dei lead.
+Se vuoi procedere in modo prudente, completa prima i passi da 1 a 15. A quel punto avrai una base reale: struttura software, database, configurazioni, app Flask e gestione manuale dei lead.
 
-Solo dopo passa ai workbot da 16 a 24.
+Prima di passare ai workbot, completa i passi da 16 a 21 per consolidare l'operativita manuale.
+
+Solo dopo passa ai workbot da 22 a 30.
 
 ## Obiettivo intermedio consigliato
 

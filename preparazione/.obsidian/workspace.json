@@ -20,23 +20,8 @@
               "icon": "lucide-file",
               "title": "04 Roadmap operativa Codex"
             }
-          },
-          {
-            "id": "7b2ee05a896dd185",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "10 Progetti/20 CIS/04 Roadmap/Passi/260316 Passo 15 bis.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "260316 Passo 15 bis"
-            }
           }
-        ],
-        "currentTab": 1
+        ]
       }
     ],
     "direction": "vertical"
@@ -183,22 +168,36 @@
       "obsidian-git:Open Git source control": false
     }
   },
-  "active": "7b2ee05a896dd185",
+  "active": "7ace69cc6799e510",
   "lastOpenFiles": [
-    "10 Progetti/20 CIS/05 Software/data/cis.sqlite3-journal",
-    "10 Progetti/20 CIS/05 Software/app/__pycache__/data_access.cpython-310.pyc.138976857705648",
-    "10 Progetti/20 CIS/05 Software/app/__pycache__/__init__.cpython-310.pyc.138976876113840",
-    "10 Progetti/20 CIS/05 Software/app/__pycache__/__init__.cpython-310.pyc.135364837633968",
-    "10 Progetti/20 CIS/05 Software/app/__pycache__/data_access.cpython-310.pyc.128824076209328",
-    "10 Progetti/20 CIS/05 Software/app/__pycache__/__init__.cpython-310.pyc.128824095272880",
-    "10 Progetti/20 CIS/04 Roadmap/Passi/260316 Passo 15.md",
-    "10 Progetti/20 CIS/04 Roadmap/Passi/260316 Passo 15 bis.md",
-    "10 Progetti/20 CIS/05 Software/Prova2.csv",
+    "260318 CIS_RESUME_PROMPT_WB0.md",
+    "10 Progetti/20 CIS/04 Roadmap/Passi/260318 Passo 22 quinquies.md",
+    "260318 CIS_RESUME_PROMPT.md",
+    "10 Progetti/20 CIS/05 Software/docs/DEVELOPMENT_NOTES.md",
+    "10 Progetti/20 CIS/05 Software/app/__pycache__/wb0_target_discovery.cpython-310.pyc.125275945985184",
+    "10 Progetti/20 CIS/05 Software/app/__pycache__/__init__.cpython-310.pyc.125275947524272",
     "10 Progetti/20 CIS/04 Roadmap/04 Roadmap operativa Codex.md",
-    "10 Progetti/20 CIS/05 Software/app/__pycache__/csv_import.cpython-310.pyc.125965338496336",
-    "10 Progetti/20 CIS/05 Software/Prova.csv",
-    "10 Progetti/20 CIS/05 Software/app/__pycache__/csv_import.cpython-310.pyc",
-    "10 Progetti/20 CIS/05 Software/app/__pycache__/csv_import.cpython-310.pyc.140059349191536",
+    "10 Progetti/20 CIS/05 Software/tests/__pycache__/test_wb0_target_discovery.cpython-310.pyc.140525954246672",
+    "10 Progetti/20 CIS/05 Software/app/__pycache__/wb0_target_discovery.cpython-310.pyc.140525954246672",
+    "10 Progetti/20 CIS/05 Software/app/__pycache__/__init__.cpython-310.pyc.140525957898576",
+    "10 Progetti/20 CIS/04 Roadmap/Passi/Note al Passo 22 quater.md",
+    "10 Progetti/20 CIS/04 Roadmap/Passi/260316 Passo 22 quater.md",
+    "10 Progetti/20 CIS/05 Software/tests/test_wb0_target_discovery.py",
+    "10 Progetti/20 CIS/05 Software/templates/wb0_target_discovery.html",
+    "10 Progetti/20 CIS/05 Software/app/wb0_target_discovery.py",
+    "10 Progetti/20 CIS/05 Software/tests/__pycache__/test_wb0_target_discovery.cpython-310.pyc.132705527883792",
+    "10 Progetti/20 CIS/05 Software/app/__pycache__/wb0_target_discovery.cpython-310.pyc.132705527883792",
+    "10 Progetti/20 CIS/04 Roadmap/Passi/260316 Passo 1.md",
+    "10 Progetti/20 CIS/04 Roadmap/Passi/260316 Passo 22 tris.md",
+    "10 Progetti/20 CIS/04 Roadmap/Passi/260316 Passo 22 bis.md",
+    "10 Progetti/20 CIS/04 Roadmap/Passi/260316 Passo 22.md",
+    "10 Progetti/20 CIS/04 Roadmap/Passi/260316 Passo 21.md",
+    "10 Progetti/20 CIS/04 Roadmap/Passi/260316 Passo 20.md",
+    "10 Progetti/20 CIS/04 Roadmap/Passi/260316 Passo 19.md",
+    "10 Progetti/20 CIS/04 Roadmap/Passi/260316 Passo 16.md",
+    "CIS_RESUME_PROMPT.md",
+    "PROJECT_TRANSFER_PACK.md",
+    "10 Progetti/20 CIS/04 Roadmap/Passi/260316 Passo 15.md",
     "10 Progetti/20 CIS/04 Roadmap/Passi/260316 Passo 14.md",
     "10 Progetti/20 CIS/04 Roadmap/Passi/260316 Passo 13.md",
     "10 Progetti/20 CIS/04 Roadmap/Passi/260316 Passo 12.md",
@@ -206,20 +205,6 @@
     "10 Progetti/20 CIS/04 Roadmap/Passi/260316 Passo 10.md",
     "10 Progetti/20 CIS/04 Roadmap/Passi/260316 Passo 9.md",
     "10 Progetti/20 CIS/04 Roadmap/Passi/260316 Passo 8.md",
-    "10 Progetti/20 CIS/05 Software/projects/melodema/email_templates/first_outreach.md",
-    "10 Progetti/20 CIS/05 Software/projects/melodema/email_templates/follow_up.md",
-    "10 Progetti/20 CIS/04 Roadmap/Passi/260316 Passo 7.md",
-    "10 Progetti/20 CIS/04 Roadmap/Passi/260316 Passo 6.md",
-    "10 Progetti/20 CIS/04 Roadmap/Passi/260316 Passo 5.md",
-    "10 Progetti/20 CIS/05 Software/docs/DATA_MODEL.md",
-    "10 Progetti/20 CIS/05 Software/README.md",
-    "10 Progetti/20 CIS/04 Roadmap/Passi/260316 Passo 4.md",
-    "10 Progetti/20 CIS/05 Software/docs/ARCHITECTURE.md",
-    "10 Progetti/20 CIS/04 Roadmap/Passi/260316 Passo 3.md",
-    "10 Progetti/20 CIS/04 Roadmap/Passi/260316 Passo 2.md",
-    "10 Progetti/20 CIS/04 Roadmap/Passi/260316 Passo 1.md",
-    "10 Progetti/20 CIS/04 Roadmap/MVP_SCOPE.md",
-    "10 Progetti/20 CIS/04 Roadmap/04 Roadmap.md",
-    "10 Progetti/20 CIS/02 PRD/CIS PRD Obsidian.md"
+    "10 Progetti/20 CIS/05 Software/projects/melodema/email_templates/first_outreach.md"
   ]
 }

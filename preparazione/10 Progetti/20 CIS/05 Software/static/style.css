@@ -1,0 +1,292 @@
+body {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  line-height: 1.5;
+  color: #1f2933;
+  background: #f5f1e8;
+}
+
+a {
+  color: #8a3b12;
+}
+
+.shell {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.site-header {
+  background: #1f2933;
+  color: #fff;
+  border-bottom: 4px solid #c16a2a;
+}
+
+.site-header .shell {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+
+.site-nav {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.site-nav a {
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+main.shell {
+  padding-top: 1.5rem;
+  padding-bottom: 2rem;
+}
+
+.eyebrow {
+  margin: 0 0 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #c16a2a;
+}
+
+.hero,
+.card,
+.summary-card,
+.subcard {
+  background: #fffdf8;
+  border: 1px solid #dccfba;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(31, 41, 51, 0.06);
+}
+
+.hero,
+.card,
+.subcard {
+  padding: 1.25rem;
+}
+
+.page-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.summary-card {
+  min-width: 180px;
+  padding: 1rem;
+}
+
+.summary-label {
+  display: block;
+  font-size: 0.9rem;
+  color: #52606d;
+}
+
+.summary-value {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 2rem;
+}
+
+.stack > * + * {
+  margin-top: 0.85rem;
+}
+
+.grid-two {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.grid-two.compact {
+  margin-bottom: 0;
+}
+
+.actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.button,
+button {
+  display: inline-block;
+  padding: 0.7rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #8a3b12;
+  background: #8a3b12;
+  color: #fff;
+  text-decoration: none;
+  cursor: pointer;
+  font: inherit;
+}
+
+.button-secondary {
+  background: #fff;
+  color: #8a3b12;
+}
+
+label {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+fieldset {
+  margin: 0;
+  padding: 0.85rem 1rem;
+  border: 1px solid #cbbda8;
+  border-radius: 8px;
+}
+
+legend {
+  padding: 0 0.35rem;
+  font-weight: 700;
+}
+
+input,
+textarea,
+select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid #cbbda8;
+  border-radius: 8px;
+  background: #fff;
+  font: inherit;
+}
+
+.checkbox-row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: start;
+  margin-bottom: 0.75rem;
+}
+
+.checkbox-row input {
+  width: auto;
+  margin-top: 0.2rem;
+}
+
+.wb0-review-header {
+  margin-bottom: 0.5rem;
+}
+
+.wb0-metadata {
+  margin-bottom: 1rem;
+}
+
+.prompt-preview {
+  margin: 0;
+  padding: 1rem;
+  white-space: pre-wrap;
+  border-radius: 8px;
+  background: #f7f1e4;
+  border: 1px solid #dccfba;
+  font: inherit;
+}
+
+.plain-list {
+  padding-left: 1.2rem;
+  margin: 0;
+}
+
+.muted {
+  color: #52606d;
+}
+
+.list-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 0;
+  border-top: 1px solid #ece3d6;
+}
+
+.list-row:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.wb0-row {
+  align-items: start;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 0;
+}
+
+.detail-grid dt {
+  font-weight: 700;
+}
+
+.detail-grid dd {
+  margin: 0.25rem 0 0;
+}
+
+.detail-span {
+  grid-column: 1 / -1;
+}
+
+.note-box {
+  margin: 0;
+  padding: 1rem;
+  border-radius: 8px;
+  background: #f7f1e4;
+}
+
+.top-gap {
+  margin-top: 1rem;
+}
+
+.flash {
+  padding: 0.9rem 1rem;
+  border-radius: 10px;
+  border: 1px solid transparent;
+}
+
+.flash-success {
+  background: #edf8ef;
+  border-color: #9dc8a5;
+}
+
+.flash-warning {
+  background: #fff4df;
+  border-color: #dfbf7a;
+}
+
+.flash-error {
+  background: #fdecec;
+  border-color: #d59a9a;
+}
+
+code {
+  padding: 0.1rem 0.3rem;
+  border-radius: 4px;
+  background: #f0e6d7;
+}
+
+@media (max-width: 720px) {
+  .page-heading,
+  .list-row,
+  .grid-two,
+  .detail-grid {
+    grid-template-columns: 1fr;
+    display: grid;
+  }
+
+  .summary-card {
+    min-width: 0;
+  }
+}

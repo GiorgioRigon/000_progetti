@@ -1,0 +1,3 @@
+Dato che la ricerca manuale la farò esclusivamente attraverso un chatbot, cosa ne pensi di creare nel run anche una sezione per salvare il prompt ?
+
+Devo dire che i parametri del run così come sono impostati non mi piacciono molto, keyword e query mi sembrano sovrapposizioni, anche area geografica se, come suggerisci, posso inserirla nella query. Puoi propormi qualcosa di più veloce da utilizzare e che nello stesso tempo possa dettagliare meglio l'imput della ricerca, che sia manuale o successivamente automatizzata?
