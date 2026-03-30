@@ -261,13 +261,14 @@ class Wb0TargetDiscoveryTests(unittest.TestCase):
 
             with sqlite3.connect(db_path) as connection:
                 row = connection.execute(
-                    "SELECT id, source, notes FROM organizations WHERE name = ?",
+                    "SELECT id, source, notes, project_key FROM organizations WHERE name = ?",
                     ("Festival Corale Bergamasco",),
                 ).fetchone()
 
             self.assertIsNotNone(row)
             self.assertEqual(row[1], "wb0_import")
             self.assertIn("WB0 qualificazione", row[2])
+            self.assertEqual(row[3], "melodema")
 
             payload = json.loads(run_path.read_text(encoding="utf-8"))
             candidate = payload["candidates"][0]
@@ -297,6 +298,8 @@ class Wb0TargetDiscoveryTests(unittest.TestCase):
         self.assertIn("Focus operativo del profilo: Trovare target realistici per il coro.", prompt_preview)
         self.assertIn("Target prioritari del profilo:", prompt_preview)
         self.assertIn("Campi minimi da raccogliere:", prompt_preview)
+        self.assertIn("Formato output suggerito per ogni candidate:", prompt_preview)
+        self.assertIn("Checklist minima prima di importare nel CIS:", prompt_preview)
 
         preview = build_prompt_preview(
             research_goal="Trovare enti per concerti corali.",

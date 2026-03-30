@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}WB0 Target Discovery - CIS{% endblock %}
+{% block body_class %}operational-page{% endblock %}
 
 {% block content %}
   <section class="page-heading">
@@ -17,21 +18,49 @@
   <section class="grid-two">
     <section class="card">
       <h2>{% if form_data.run_file %}Modifica run salvato{% else %}Nuovo run di ricerca{% endif %}</h2>
+      {% if wb0_profile %}
+        <div class="subcard stack">
+          <p><strong>Guida rapida del profilo attivo</strong></p>
+          {% if wb0_profile.search_focus %}
+            <p class="muted">{{ wb0_profile.search_focus }}</p>
+          {% endif %}
+          {% if wb0_profile.target_priorities %}
+            <div>
+              <p><strong>Target prioritari</strong></p>
+              <ul class="plain-list">
+                {% for item in wb0_profile.target_priorities %}
+                  <li>{{ item }}</li>
+                {% endfor %}
+              </ul>
+            </div>
+          {% endif %}
+          {% if wb0_profile.required_fields %}
+            <div>
+              <p><strong>Campi minimi da raccogliere</strong></p>
+              <ul class="plain-list">
+                {% for item in wb0_profile.required_fields %}
+                  <li>{{ item }}</li>
+                {% endfor %}
+              </ul>
+            </div>
+          {% endif %}
+        </div>
+      {% endif %}
       <form class="stack" method="post" action="{{ url_for('wb0_target_discovery') }}">
         <input type="hidden" name="form_type" value="save_run">
         <input type="hidden" name="run_file" value="{{ form_data.run_file }}">
 
         <label for="research_goal">Obiettivo ricerca</label>
-        <textarea id="research_goal" name="research_goal" rows="3" required>{{ form_data.research_goal }}</textarea>
+        <textarea id="research_goal" name="research_goal" rows="3" required placeholder="Che tipo di target vuoi trovare e per quale scopo operativo?">{{ form_data.research_goal }}</textarea>
 
         <label for="project_context">Contesto progetto</label>
-        <textarea id="project_context" name="project_context" rows="3" required>{{ form_data.project_context }}</textarea>
+        <textarea id="project_context" name="project_context" rows="3" required placeholder="Descrivi progetto, offerta, posizionamento e vincoli utili alla ricerca.">{{ form_data.project_context }}</textarea>
 
         <label for="territory_target">Territorio target</label>
-        <input id="territory_target" name="territory_target" type="text" value="{{ form_data.territory_target }}" required>
+        <input id="territory_target" name="territory_target" type="text" value="{{ form_data.territory_target }}" required placeholder="Es. Lombardia e Veneto, Italia nord, Emilia-Romagna">
 
         <label for="target_types">Tipi di target</label>
-        <textarea id="target_types" name="target_types" rows="4" required>{{ form_data.target_types }}</textarea>
+        <textarea id="target_types" name="target_types" rows="4" required placeholder="Una voce per riga: aziende, diocesi, teatri, festival, enti formativi...">{{ form_data.target_types }}</textarea>
         <p class="muted">Una voce per riga, ad esempio: comuni, diocesi, teatri, festival, associazioni culturali.</p>
 
         <fieldset class="source-fieldset">
@@ -55,20 +84,20 @@
         </fieldset>
 
         <label for="research_prompt">Prompt di ricerca</label>
-        <textarea id="research_prompt" name="research_prompt" rows="8" required>{{ form_data.research_prompt }}</textarea>
+        <textarea id="research_prompt" name="research_prompt" rows="8" required placeholder="Scrivi il prompt base da usare nel chatbot o come traccia per la ricerca manuale.">{{ form_data.research_prompt }}</textarea>
 
         <label for="prompt_variants">Varianti di prompt o query usate</label>
-        <textarea id="prompt_variants" name="prompt_variants" rows="5">{{ form_data.prompt_variants }}</textarea>
+        <textarea id="prompt_variants" name="prompt_variants" rows="5" placeholder="Una variante per riga. Salva qui query corrette, tentativi utili o formule che hanno funzionato.">{{ form_data.prompt_variants }}</textarea>
         <p class="muted">Una variante per riga. Utile per salvare prompt corretti o iterazioni provate.</p>
 
         <label for="inclusion_criteria">Criteri di inclusione</label>
-        <textarea id="inclusion_criteria" name="inclusion_criteria" rows="4" required>{{ form_data.inclusion_criteria }}</textarea>
+        <textarea id="inclusion_criteria" name="inclusion_criteria" rows="4" required placeholder="Una riga per criterio. Inserisci solo criteri che rendono il target davvero interessante.">{{ form_data.inclusion_criteria }}</textarea>
 
         <label for="exclusion_criteria">Criteri di esclusione</label>
-        <textarea id="exclusion_criteria" name="exclusion_criteria" rows="4">{{ form_data.exclusion_criteria }}</textarea>
+        <textarea id="exclusion_criteria" name="exclusion_criteria" rows="4" placeholder="Una riga per criterio. Elenca cio che rende il target debole, fuori scope o poco realistico.">{{ form_data.exclusion_criteria }}</textarea>
 
         <label for="raw_candidates">Candidate organizations</label>
-        <textarea id="raw_candidates" name="raw_candidates" rows="10" required>{{ form_data.raw_candidates }}</textarea>
+        <textarea id="raw_candidates" name="raw_candidates" rows="10" required placeholder="Nome | tipo | citta | regione | paese | sito | nota fit o evidenza">{{ form_data.raw_candidates }}</textarea>
         <p class="muted">
           Una riga per organization nel formato:
           <code>nome | tipo | citta | regione | paese | sito | note</code>
@@ -184,6 +213,27 @@
           </ul>
         </div>
       {% endif %}
+      {% if wb0_profile.include_signals or wb0_profile.exclude_signals %}
+        <div class="top-gap">
+          <p><strong>Guida review del profilo</strong></p>
+          {% if wb0_profile.include_signals %}
+            <p><strong>Segnali di buon fit</strong></p>
+            <ul class="plain-list">
+              {% for item in wb0_profile.include_signals %}
+                <li>{{ item }}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+          {% if wb0_profile.exclude_signals %}
+            <p><strong>Segnali di cautela o esclusione</strong></p>
+            <ul class="plain-list">
+              {% for item in wb0_profile.exclude_signals %}
+                <li>{{ item }}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        </div>
+      {% endif %}
       <div class="stack top-gap">
         {% for candidate in active_run.candidates %}
           <article class="subcard stack">
@@ -279,7 +329,8 @@
                 </div>
 
                 <label for="qualification_notes_{{ loop.index0 }}">Note di qualificazione</label>
-                <textarea id="qualification_notes_{{ loop.index0 }}" name="qualification_notes" rows="4">{{ candidate.qualification_notes or "" }}</textarea>
+                <textarea id="qualification_notes_{{ loop.index0 }}" name="qualification_notes" rows="4" placeholder="Spiega in breve il motivo del fit, l'evidenza trovata e il dubbio principale se presente.">{{ candidate.qualification_notes or "" }}</textarea>
+                <p class="muted">Annota perche il target vale la pena di essere importato oppure perche va scartato.</p>
 
                 <div class="actions">
                   <button type="submit">Salva review</button>

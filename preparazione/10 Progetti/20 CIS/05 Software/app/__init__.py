@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
-from flask import Flask, abort, flash, redirect, render_template, request, url_for
+from flask import Flask, abort, flash, redirect, render_template, request, session, url_for
 from werkzeug.exceptions import HTTPException
 
 from app.csv_import import ImportResult, import_leads_csv
@@ -14,9 +14,17 @@ from app.data_access import (
     OrganizationCreate,
     OrganizationRepository,
 )
+from app.lead_qualification import (
+    build_qualification_note,
+    extract_qualification_data,
+    merge_qualification_notes,
+)
+from app.project_registry import list_projects
 from app.workbot_profiles import load_workbot_profile
 from app.wb1_contact_hunter import (
+    build_research_note,
     build_contact_hunter_prompt,
+    extract_research_metadata,
     extract_research_note,
     extract_social_profiles,
     merge_wb1_notes,
@@ -59,13 +67,48 @@ def create_app(
     contacts = ContactRepository(database)
     app.logger.info("CIS app initialized", extra={"db_path": str(database.db_path)})
 
+    def get_active_project_key() -> str:
+        available_projects = list_projects(app.config["PROJECTS_ROOT"])
+        available_keys = {project["key"] for project in available_projects}
+        session_project_key = str(session.get("active_project_key", "") or "")
+        if session_project_key and session_project_key in available_keys:
+            return session_project_key
+        configured_project_key = str(app.config["ACTIVE_PROJECT_KEY"])
+        if configured_project_key in available_keys:
+            return configured_project_key
+        if available_projects:
+            return available_projects[0]["key"]
+        return configured_project_key
+
+    @app.context_processor
+    def inject_project_navigation() -> dict[str, object]:
+        available_projects = list_projects(app.config["PROJECTS_ROOT"])
+        return {
+            "available_projects": available_projects,
+            "active_project_key": get_active_project_key(),
+        }
+
     @app.get("/")
     def home() -> str:
         return render_template("home.html")
 
+    @app.post("/active-project")
+    def set_active_project() -> str:
+        requested_project_key = request.form.get("project_key", "").strip()
+        available_projects = list_projects(app.config["PROJECTS_ROOT"])
+        available_keys = {project["key"] for project in available_projects}
+
+        if requested_project_key not in available_keys:
+            flash("Il progetto selezionato non e disponibile.", "error")
+            return redirect(request.referrer or url_for("home"))
+
+        session["active_project_key"] = requested_project_key
+        flash(f"Progetto attivo aggiornato: {requested_project_key}.", "success")
+        return redirect(request.referrer or url_for("home"))
+
     @app.route("/wb0", methods=["GET", "POST"])
     def wb0_target_discovery() -> str:
-        project_key = str(app.config["ACTIVE_PROJECT_KEY"])
+        project_key = get_active_project_key()
         available_sources = load_project_sources(project_key, app.config["PROJECTS_ROOT"])
         wb0_profile = load_workbot_profile(project_key, "wb0", app.config["PROJECTS_ROOT"])
         selected_run_file = request.args.get("run_file", "").strip()
@@ -181,6 +224,7 @@ def create_app(
                                     organization_id = organizations.create(
                                         OrganizationCreate(
                                             name=str(candidate.get("name", "")).strip(),
+                                            project_key=project_key,
                                             organization_type=_clean_form_value(candidate.get("organization_type")),
                                             city=_clean_form_value(candidate.get("city")),
                                             region=_clean_form_value(candidate.get("region")),
@@ -340,6 +384,7 @@ def create_app(
             "wb0_target_discovery.html",
             project_key=project_key,
             active_run=active_run,
+            wb0_profile=wb0_profile,
             form_data=form_data,
             available_sources=available_sources,
             prompt_preview=prompt_preview,
@@ -362,6 +407,7 @@ def create_app(
                         organization_id = organizations.create(
                             OrganizationCreate(
                                 name=name,
+                                project_key=get_active_project_key(),
                                 organization_type=request.form.get("organization_type", "").strip() or None,
                                 sector=request.form.get("sector", "").strip() or None,
                                 city=request.form.get("city", "").strip() or None,
@@ -410,6 +456,7 @@ def create_app(
                                 csv_text=csv_text,
                                 organizations=organizations,
                                 contacts=contacts,
+                                project_key=get_active_project_key(),
                             )
                         except Exception:
                             app.logger.exception(
@@ -437,8 +484,28 @@ def create_app(
 
         return render_template(
             "organizations.html",
-            organizations=organizations.list_all(),
+            organizations=organizations.list_by_project(get_active_project_key()),
             import_result=import_result,
+        )
+
+    @app.get("/organizations/table")
+    def organizations_table() -> str:
+        active_project_key = get_active_project_key()
+        organizations_for_project = organizations.list_by_project(active_project_key)
+        table_rows = []
+
+        for organization in organizations_for_project:
+            qualification_data = extract_qualification_data(organization.get("notes"))
+            table_rows.append(
+                {
+                    "organization": organization,
+                    "qualification": qualification_data,
+                }
+            )
+
+        return render_template(
+            "organizations_table.html",
+            table_rows=table_rows,
         )
 
     @app.route("/organizations/<int:organization_id>", methods=["GET", "POST"])
@@ -461,6 +528,7 @@ def create_app(
                         organization_id,
                         OrganizationCreate(
                             name=name,
+                            project_key=str(organization.get("project_key", "melodema")),
                             organization_type=request.form.get("organization_type", "").strip() or None,
                             sector=request.form.get("sector", "").strip() or None,
                             city=request.form.get("city", "").strip() or None,
@@ -569,7 +637,12 @@ def create_app(
                 website = request.form.get("website", "").strip()
                 general_email = request.form.get("general_email", "").strip()
                 general_phone = request.form.get("general_phone", "").strip()
-                research_note = request.form.get("research_note", "").strip()
+                research_note = build_research_note(
+                    research_note=request.form.get("research_note", ""),
+                    verification_source=request.form.get("verification_source", ""),
+                    contact_level=request.form.get("contact_level", ""),
+                    qualification_signals=request.form.get("qualification_signals", ""),
+                )
 
                 if not any(
                     [
@@ -592,6 +665,7 @@ def create_app(
                         organization_id,
                         OrganizationCreate(
                             name=str(organization["name"]),
+                            project_key=str(organization.get("project_key", "melodema")),
                             campaign_id=organization["campaign_id"],
                             organization_type=organization["organization_type"],
                             sector=organization["sector"],
@@ -633,13 +707,62 @@ def create_app(
                         extra={"organization_id": organization_id},
                     )
                     flash("WB1 aggiornato correttamente.", "success")
+            elif form_type == "lead_qualification":
+                qualification_note = build_qualification_note(
+                    fit_label=request.form.get("fit_label", ""),
+                    opportunity_type=request.form.get("opportunity_type", ""),
+                    priority_level=request.form.get("priority_level", ""),
+                    qualification_signals=request.form.get("qualification_signals", ""),
+                    next_step=request.form.get("next_step", ""),
+                    qualification_note=request.form.get("qualification_note", ""),
+                )
+
+                if not qualification_note:
+                    flash("Inserisci almeno un dato di qualificazione lead.", "error")
+                    return redirect(url_for("organization_detail", organization_id=organization_id))
+
+                try:
+                    organizations.update(
+                        organization_id,
+                        OrganizationCreate(
+                            name=str(organization["name"]),
+                            project_key=str(organization.get("project_key", "melodema")),
+                            campaign_id=organization["campaign_id"],
+                            organization_type=organization["organization_type"],
+                            sector=organization["sector"],
+                            city=organization["city"],
+                            region=organization["region"],
+                            country=organization["country"],
+                            website=organization["website"],
+                            phone=organization["phone"],
+                            email=organization["email"],
+                            source=organization["source"],
+                            notes=merge_qualification_notes(
+                                existing_notes=organization["notes"],
+                                qualification_note=qualification_note,
+                            ),
+                        ),
+                    )
+                except Exception:
+                    app.logger.exception(
+                        "Failed to save lead qualification",
+                        extra={"organization_id": organization_id},
+                    )
+                    flash("Non e stato possibile salvare la qualificazione lead.", "error")
+                else:
+                    app.logger.info(
+                        "Lead qualification saved",
+                        extra={"organization_id": organization_id},
+                    )
+                    flash("Qualificazione lead aggiornata correttamente.", "success")
 
             return redirect(url_for("organization_detail", organization_id=organization_id))
 
         organization = organizations.get(organization_id)
         organization_contacts = contacts.list_by_organization(organization_id)
+        qualification_data = extract_qualification_data(organization.get("notes"))
         wb1_profile = load_workbot_profile(
-            str(app.config["ACTIVE_PROJECT_KEY"]),
+            get_active_project_key(),
             "wb1",
             app.config["PROJECTS_ROOT"],
         )
@@ -655,6 +778,7 @@ def create_app(
             existing_contacts=organization_contacts,
             profile=wb1_profile,
         )
+        wb1_research_metadata = extract_research_metadata(organization.get("notes"))
         wb1_form_data = {
             "website": str(organization.get("website", "") or ""),
             "general_email": str(organization.get("email", "") or ""),
@@ -664,13 +788,18 @@ def create_app(
             "contact_email": "",
             "contact_phone": "",
             "social_profiles": "\n".join(extract_social_profiles(organization.get("notes"))),
-            "research_note": extract_research_note(organization.get("notes")),
+            "research_note": wb1_research_metadata["research_note"],
+            "verification_source": wb1_research_metadata["verification_source"],
+            "contact_level": wb1_research_metadata["contact_level"],
+            "qualification_signals": wb1_research_metadata["qualification_signals"],
         }
 
         return render_template(
             "organization_detail.html",
             organization=organization,
             contacts=organization_contacts,
+            qualification_data=qualification_data,
+            wb1_profile=wb1_profile,
             wb1_prompt_preview=wb1_prompt_preview,
             wb1_form_data=wb1_form_data,
             wb1_social_profiles=extract_social_profiles(organization.get("notes")),

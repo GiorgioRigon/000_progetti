@@ -357,6 +357,19 @@ def build_prompt_preview(
         lines.extend(["", "Criteri di esclusione:", *[f"- {item}" for item in exclusion_criteria]])
     if profile_output_notes:
         lines.extend(["", "Note operative del profilo:", *[f"- {item}" for item in profile_output_notes]])
+    lines.extend(
+        [
+            "",
+            "Formato output suggerito per ogni candidate:",
+            "- nome | tipo | citta | regione | paese | sito | nota fit",
+            "",
+            "Checklist minima prima di importare nel CIS:",
+            "- il target e coerente con il progetto",
+            "- esiste almeno una evidenza verificabile",
+            "- il sito e confermato oppure l'assenza e annotata",
+            "- la nota di fit spiega perche vale la pena approfondire",
+        ]
+    )
     return "\n".join(lines)
 
 

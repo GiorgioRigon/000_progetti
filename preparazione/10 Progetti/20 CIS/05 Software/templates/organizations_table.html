@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Organizations Table - CIS{% endblock %}
+{% block body_class %}operational-page table-page{% endblock %}
+
+{% block content %}
+  <div class="table-page-shell">
+  <section class="page-heading">
+    <div>
+      <p class="eyebrow">Vista tabellare</p>
+      <h1>Organizations Table</h1>
+      <p class="muted">Vista rapida e leggibile delle organization del progetto attivo.</p>
+      <p class="muted">Progetto attivo: <strong>{{ active_project_key }}</strong></p>
+    </div>
+    <div class="actions">
+      <a class="button button-secondary" href="{{ url_for('organizations_list') }}">Torna a Organizations</a>
+    </div>
+  </section>
+
+  <section class="card">
+    {% if table_rows %}
+      <div class="table-wrap">
+        <table class="data-table data-table-compact">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Tipo</th>
+              <th>Citta</th>
+              <th>Paese</th>
+              <th>Email</th>
+              <th>Telefono</th>
+              <th>Fit</th>
+              <th>Priorita</th>
+              <th>Opportunita</th>
+              <th>Prossimo passo</th>
+              <th>Azioni</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in table_rows %}
+              <tr>
+                <td>
+                  <strong>{{ row.organization.name }}</strong>
+                </td>
+                <td>{{ row.organization.organization_type or "-" }}</td>
+                <td>{{ row.organization.city or "-" }}</td>
+                <td>{{ row.organization.country or "-" }}</td>
+                <td>{{ row.organization.email or "-" }}</td>
+                <td>{{ row.organization.phone or "-" }}</td>
+                <td>{{ row.qualification.fit_label or "-" }}</td>
+                <td>{{ row.qualification.priority_level or "-" }}</td>
+                <td>{{ row.qualification.opportunity_type or "-" }}</td>
+                <td>{{ row.qualification.next_step or "-" }}</td>
+                <td>
+                  <a class="button button-secondary button-small" href="{{ url_for('organization_detail', organization_id=row.organization.id) }}">Apri</a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p>Nessuna organization presente nel progetto attivo.</p>
+    {% endif %}
+  </section>
+  </div>
+{% endblock %}

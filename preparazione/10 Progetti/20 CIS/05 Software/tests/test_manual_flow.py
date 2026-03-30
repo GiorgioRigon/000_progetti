@@ -132,11 +132,37 @@ class ManualFlowTests(unittest.TestCase):
         self.assertIn("Contatto aggiornato correttamente.", edit_contact_page)
         self.assertIn("Direzione artistica eventi musicali", edit_contact_page)
 
+        qualification_response = self.client.post(
+            f"/organizations/{organization_id}",
+            data={
+                "form_type": "lead_qualification",
+                "fit_label": "alto",
+                "priority_level": "alta",
+                "opportunity_type": "cliente",
+                "qualification_signals": "territorio forte, repertorio coerente",
+                "next_step": "fare WB1",
+                "qualification_note": "Lead promettente con buona coerenza artistica e logistica.",
+            },
+            follow_redirects=True,
+        )
+        qualification_page = qualification_response.get_data(as_text=True)
+        self.assertEqual(qualification_response.status_code, 200)
+        self.assertIn("Qualificazione lead aggiornata correttamente.", qualification_page)
+        self.assertIn("territorio forte, repertorio coerente", qualification_page)
+
         dashboard_response = self.client.get("/organizations")
         dashboard_page = dashboard_response.get_data(as_text=True)
         self.assertEqual(dashboard_response.status_code, 200)
         self.assertIn("Festival Monteverdi Cremona", dashboard_page)
         self.assertIn("Basilica di Santa Cecilia", dashboard_page)
+
+        with sqlite3.connect(self.db_path) as connection:
+            row = connection.execute(
+                "SELECT project_key FROM organizations WHERE name = ?",
+                ("Basilica di Santa Cecilia",),
+            ).fetchone()
+        self.assertIsNotNone(row)
+        self.assertEqual(row[0], "melodema")
 
     def _import_demo_csv(self):
         csv_bytes = self.demo_csv_path.read_bytes()

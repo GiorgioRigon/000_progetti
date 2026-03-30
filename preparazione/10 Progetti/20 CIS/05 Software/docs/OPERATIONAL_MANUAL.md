@@ -7,7 +7,7 @@ Manuale operativo pratico da usare dopo il completamento della roadmap di due se
 Questo manuale serve per usare il `CIS` in modo semplice, ripetibile e controllato su progetti diversi, ad esempio:
 
 - `melodema`
-- `consulenza_certificazione`
+- `ethics`
 - altri progetti futuri
 
 Il principio resta sempre lo stesso:
@@ -47,7 +47,7 @@ Prima di iniziare, chiarire sempre:
 Esempi:
 
 - `melodema`: trovare enti che programmano concerti
-- `consulenza_certificazione`: trovare aziende o organizzazioni con segnali di interesse verso `PdR125` o temi affini
+- `ethics`: trovare aziende o organizzazioni con segnali di interesse verso `PdR125` o temi affini
 
 ## 2. Controllare il profilo operativo
 
@@ -163,7 +163,7 @@ Se non trovi un referente nominativo:
 
 ## 7. Salvare i dati di qualificazione
 
-Per il progetto `consulenza_certificazione`, oltre ai dati di contatto, salva anche gli elementi utili a capire se il lead e buono.
+Per il progetto `ethics`, oltre ai dati di contatto, salva anche gli elementi utili a capire se il lead e buono.
 
 Esempi:
 

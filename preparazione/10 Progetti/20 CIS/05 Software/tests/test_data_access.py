@@ -82,6 +82,7 @@ class DataAccessCrudTests(unittest.TestCase):
             OrganizationCreate(
                 campaign_id=campaign_id,
                 name="Teatro Comunale",
+                project_key="melodema",
                 city="Parma",
                 website="https://example.org",
             )
@@ -92,11 +93,13 @@ class DataAccessCrudTests(unittest.TestCase):
         self.assertIsNotNone(organization)
         self.assertEqual(organization["name"], "Teatro Comunale")
         self.assertEqual(organization["campaign_id"], campaign_id)
+        self.assertEqual(organization["project_key"], "melodema")
 
     def test_can_create_and_read_contact(self) -> None:
         organization_id = self.organizations.create(
             OrganizationCreate(
                 name="Festival Corale",
+                project_key="melodema",
                 city="Bologna",
             )
         )
@@ -117,6 +120,30 @@ class DataAccessCrudTests(unittest.TestCase):
         self.assertEqual(contact["full_name"], "Laura Bianchi")
         self.assertEqual(contact["organization_id"], organization_id)
         self.assertEqual(len(contacts_for_organization), 1)
+
+    def test_can_filter_organizations_by_project(self) -> None:
+        self.organizations.create(
+            OrganizationCreate(
+                name="Basilica di Santa Cecilia",
+                project_key="melodema",
+                city="Bergamo",
+            )
+        )
+        self.organizations.create(
+            OrganizationCreate(
+                name="Ethics Advisory Group",
+                project_key="ethics",
+                city="Milano",
+            )
+        )
+
+        melodema_organizations = self.organizations.list_by_project("melodema")
+        ethics_organizations = self.organizations.list_by_project("ethics")
+
+        self.assertEqual(len(melodema_organizations), 1)
+        self.assertEqual(melodema_organizations[0]["name"], "Basilica di Santa Cecilia")
+        self.assertEqual(len(ethics_organizations), 1)
+        self.assertEqual(ethics_organizations[0]["name"], "Ethics Advisory Group")
 
 
 if __name__ == "__main__":

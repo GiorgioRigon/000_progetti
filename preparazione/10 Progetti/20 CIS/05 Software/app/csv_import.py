@@ -25,6 +25,7 @@ def import_leads_csv(
     csv_text: str,
     organizations: OrganizationRepository,
     contacts: ContactRepository,
+    project_key: str,
 ) -> ImportResult:
     result = ImportResult()
     delimiter = _detect_delimiter(csv_text)
@@ -52,6 +53,7 @@ def import_leads_csv(
         organization_id = organizations.create(
             OrganizationCreate(
                 name=organization_name,
+                project_key=project_key,
                 organization_type=_clean(row.get("organization_type")),
                 sector=_clean(row.get("sector")),
                 city=_clean(row.get("city")),

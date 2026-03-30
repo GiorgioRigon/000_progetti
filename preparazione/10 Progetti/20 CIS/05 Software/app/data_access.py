@@ -23,6 +23,7 @@ class CampaignCreate:
 @dataclass(slots=True)
 class OrganizationCreate:
     name: str
+    project_key: str = "melodema"
     campaign_id: int | None = None
     organization_type: str | None = None
     sector: str | None = None
@@ -57,7 +58,25 @@ class Database:
         connection = sqlite3.connect(self.db_path)
         connection.row_factory = sqlite3.Row
         connection.execute("PRAGMA foreign_keys = ON;")
+        self._ensure_schema(connection)
         return connection
+
+    def _ensure_schema(self, connection: sqlite3.Connection) -> None:
+        columns = {
+            row["name"]
+            for row in connection.execute("PRAGMA table_info(organizations)").fetchall()
+        }
+        if "project_key" not in columns:
+            connection.execute(
+                "ALTER TABLE organizations ADD COLUMN project_key TEXT NOT NULL DEFAULT 'melodema'"
+            )
+            connection.execute(
+                "UPDATE organizations SET project_key = 'melodema' WHERE project_key IS NULL OR project_key = ''"
+            )
+            connection.execute(
+                "CREATE INDEX IF NOT EXISTS idx_organizations_project_key ON organizations(project_key)"
+            )
+            connection.commit()
 
 
 class CampaignRepository:
@@ -104,12 +123,13 @@ class OrganizationRepository:
     def create(self, organization: OrganizationCreate) -> int:
         query = """
             INSERT INTO organizations (
-                campaign_id, name, organization_type, sector, city, region,
+                project_key, campaign_id, name, organization_type, sector, city, region,
                 country, website, phone, email, source, notes
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
         values = (
+            organization.project_key,
             organization.campaign_id,
             organization.name,
             organization.organization_type,
@@ -138,6 +158,7 @@ class OrganizationRepository:
         query = """
             UPDATE organizations
             SET
+                project_key = ?,
                 campaign_id = ?,
                 name = ?,
                 organization_type = ?,
@@ -154,6 +175,7 @@ class OrganizationRepository:
             WHERE id = ?
         """
         values = (
+            organization.project_key,
             organization.campaign_id,
             organization.name,
             organization.organization_type,
@@ -176,6 +198,16 @@ class OrganizationRepository:
         query = "SELECT * FROM organizations ORDER BY created_at DESC, id DESC"
         with self.database.connect() as connection:
             rows = connection.execute(query).fetchall()
+        return [dict(row) for row in rows]
+
+    def list_by_project(self, project_key: str) -> list[dict[str, Any]]:
+        query = """
+            SELECT * FROM organizations
+            WHERE project_key = ?
+            ORDER BY created_at DESC, id DESC
+        """
+        with self.database.connect() as connection:
+            rows = connection.execute(query, (project_key,)).fetchall()
         return [dict(row) for row in rows]
 
     def list_by_campaign(self, campaign_id: int) -> list[dict[str, Any]]:

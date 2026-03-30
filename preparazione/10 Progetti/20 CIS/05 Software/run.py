@@ -3,7 +3,7 @@ from __future__ import annotations
 from app import create_app
 
 
-app = create_app()
+app = create_app(active_project_key="ethics")
 
 
 if __name__ == "__main__":

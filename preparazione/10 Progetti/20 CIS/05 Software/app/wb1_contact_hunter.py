@@ -7,6 +7,9 @@ WB1_SOCIAL_BLOCK_START = "[WB1 social]"
 WB1_SOCIAL_BLOCK_END = "[/WB1 social]"
 WB1_RESEARCH_BLOCK_START = "[WB1 note]"
 WB1_RESEARCH_BLOCK_END = "[/WB1 note]"
+WB1_VERIFICATION_SOURCE_PREFIX = "Fonte verifica:"
+WB1_CONTACT_LEVEL_PREFIX = "Livello contatto:"
+WB1_QUALIFICATION_SIGNALS_PREFIX = "Segnali qualificazione:"
 
 
 def parse_multiline_field(raw_text: str) -> list[str]:
@@ -124,6 +127,47 @@ def extract_social_profiles(notes: str | None) -> list[str]:
 
 def extract_research_note(notes: str | None) -> str:
     lines = _extract_block_lines(notes or "", WB1_RESEARCH_BLOCK_START, WB1_RESEARCH_BLOCK_END)
+    return "\n".join(lines)
+
+
+def extract_research_metadata(notes: str | None) -> dict[str, str]:
+    metadata = {
+        "verification_source": "",
+        "contact_level": "",
+        "qualification_signals": "",
+        "research_note": "",
+    }
+    remaining_lines: list[str] = []
+
+    for line in _extract_block_lines(notes or "", WB1_RESEARCH_BLOCK_START, WB1_RESEARCH_BLOCK_END):
+        if line.startswith(WB1_VERIFICATION_SOURCE_PREFIX):
+            metadata["verification_source"] = line.split(":", 1)[1].strip()
+        elif line.startswith(WB1_CONTACT_LEVEL_PREFIX):
+            metadata["contact_level"] = line.split(":", 1)[1].strip()
+        elif line.startswith(WB1_QUALIFICATION_SIGNALS_PREFIX):
+            metadata["qualification_signals"] = line.split(":", 1)[1].strip()
+        else:
+            remaining_lines.append(line)
+
+    metadata["research_note"] = "\n".join(remaining_lines).strip()
+    return metadata
+
+
+def build_research_note(
+    research_note: str,
+    verification_source: str,
+    contact_level: str,
+    qualification_signals: str,
+) -> str:
+    lines: list[str] = []
+    if research_note.strip():
+        lines.append(research_note.strip())
+    if verification_source.strip():
+        lines.append(f"{WB1_VERIFICATION_SOURCE_PREFIX} {verification_source.strip()}")
+    if contact_level.strip():
+        lines.append(f"{WB1_CONTACT_LEVEL_PREFIX} {contact_level.strip()}")
+    if qualification_signals.strip():
+        lines.append(f"{WB1_QUALIFICATION_SIGNALS_PREFIX} {qualification_signals.strip()}")
     return "\n".join(lines)
 
 

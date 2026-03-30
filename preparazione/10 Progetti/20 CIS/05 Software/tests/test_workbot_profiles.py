@@ -18,7 +18,7 @@ class WorkbotProfilesTests(unittest.TestCase):
         profiles = load_workbot_profiles("melodema", BASE_DIR / "projects")
         self.assertEqual(profiles["profile_name"], "Melodema base")
 
-        wb1_profile = load_workbot_profile("consulenza_certificazione", "wb1", BASE_DIR / "projects")
+        wb1_profile = load_workbot_profile("ethics", "wb1", BASE_DIR / "projects")
         self.assertIn("HR manager o HR director", wb1_profile["priority_roles"])
 
     def test_missing_profile_file_returns_empty_dict(self) -> None:

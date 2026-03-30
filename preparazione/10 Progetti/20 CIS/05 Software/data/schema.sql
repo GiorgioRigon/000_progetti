@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS campaigns (
 
 CREATE TABLE IF NOT EXISTS organizations (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    project_key TEXT NOT NULL DEFAULT 'melodema',
     campaign_id INTEGER,
     name TEXT NOT NULL,
     organization_type TEXT,
@@ -113,6 +114,9 @@ CREATE TABLE IF NOT EXISTS assets (
 
 CREATE INDEX IF NOT EXISTS idx_organizations_campaign_id
     ON organizations(campaign_id);
+
+CREATE INDEX IF NOT EXISTS idx_organizations_project_key
+    ON organizations(project_key);
 
 CREATE INDEX IF NOT EXISTS idx_contacts_organization_id
     ON contacts(organization_id);

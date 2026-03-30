@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}Organizations - CIS{% endblock %}
+{% block body_class %}operational-page{% endblock %}
 
 {% block content %}
   <section class="page-heading">
@@ -8,10 +9,14 @@
       <p class="eyebrow">Archivio lead</p>
       <h1>Organizations</h1>
       <p class="muted">Gestione manuale e import CSV in un unico punto.</p>
+      <p class="muted">Progetto attivo: <strong>{{ active_project_key }}</strong></p>
     </div>
     <div class="summary-card">
       <span class="summary-label">Totale organizations</span>
       <strong class="summary-value">{{ organizations|length }}</strong>
+      <div class="top-gap">
+        <a class="button button-secondary" href="{{ url_for('organizations_table') }}">Apri tabella</a>
+      </div>
     </div>
   </section>
 
@@ -124,7 +129,7 @@
         {% endfor %}
       </div>
     {% else %}
-      <p>Nessuna organizzazione presente nel database.</p>
+      <p>Nessuna organizzazione presente nel progetto attivo.</p>
     {% endif %}
   </section>
 {% endblock %}

@@ -14,7 +14,9 @@ if str(BASE_DIR) not in sys.path:
 from app import create_app  # noqa: E402
 from app.data_access import Database, OrganizationCreate, OrganizationRepository  # noqa: E402
 from app.wb1_contact_hunter import (  # noqa: E402
+    build_research_note,
     build_contact_hunter_prompt,
+    extract_research_metadata,
     extract_research_note,
     extract_social_profiles,
     merge_wb1_notes,
@@ -65,6 +67,26 @@ class Wb1ContactHunterTests(unittest.TestCase):
             "Email verificata su pagina contatti ufficiale.",
         )
 
+        structured_note = build_research_note(
+            research_note="Ruolo coerente con il bisogno.",
+            verification_source="pagina team ufficiale",
+            contact_level="decision maker",
+            qualification_signals="PdR125, HR",
+        )
+        self.assertIn("Fonte verifica: pagina team ufficiale", structured_note)
+
+        metadata = extract_research_metadata(
+            merge_wb1_notes(
+                existing_notes=None,
+                social_profiles=[],
+                research_note=structured_note,
+            )
+        )
+        self.assertEqual(metadata["verification_source"], "pagina team ufficiale")
+        self.assertEqual(metadata["contact_level"], "decision maker")
+        self.assertEqual(metadata["qualification_signals"], "PdR125, HR")
+        self.assertEqual(metadata["research_note"], "Ruolo coerente con il bisogno.")
+
     def test_wb1_enrichment_updates_organization_and_creates_contact(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             db_path = Path(temp_dir) / "test.sqlite3"
@@ -105,6 +127,9 @@ class Wb1ContactHunterTests(unittest.TestCase):
                         "instagram | https://instagram.com/santacecilia.bergamo\n"
                         "facebook | https://facebook.com/santacecilia.bergamo"
                     ),
+                    "verification_source": "sito ufficiale e pagina contatti",
+                    "contact_level": "decision maker",
+                    "qualification_signals": "eventi musicali, programmazione culturale",
                     "research_note": "Dati verificati manualmente su sito ufficiale e profili social.",
                 },
                 follow_redirects=True,
@@ -132,6 +157,9 @@ class Wb1ContactHunterTests(unittest.TestCase):
             self.assertEqual(organization_row[2], "+39 035 123456")
             self.assertIn("[WB1 social]", organization_row[3])
             self.assertIn("Dati verificati manualmente", organization_row[3])
+            self.assertIn("Fonte verifica: sito ufficiale e pagina contatti", organization_row[3])
+            self.assertIn("Livello contatto: decision maker", organization_row[3])
+            self.assertIn("Segnali qualificazione: eventi musicali, programmazione culturale", organization_row[3])
 
             self.assertIsNotNone(contact_row)
             self.assertEqual(contact_row[0], "Marta Colombo")

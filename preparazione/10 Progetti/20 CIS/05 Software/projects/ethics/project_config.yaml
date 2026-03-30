@@ -1,6 +1,6 @@
 project:
-  key: consulenza_certificazione
-  name: Consulenza Certificazione Outreach
+  key: ethics
+  name: Ethics Outreach Engine
   description: Ricerca target e referenti per servizi di consulenza sulla certificazione PdR125 e certificazioni collegate.
   status: active
   owner: Giorgio

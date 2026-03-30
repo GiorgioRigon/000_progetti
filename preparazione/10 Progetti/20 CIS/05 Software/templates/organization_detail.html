@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}{{ organization.name }} - CIS{% endblock %}
+{% block body_class %}operational-page{% endblock %}
 
 {% block content %}
   <section class="page-heading">
@@ -117,6 +118,89 @@
         <p class="note-box">{{ organization.notes }}</p>
       {% else %}
         <p class="muted">Nessuna nota disponibile.</p>
+      {% endif %}
+    </section>
+  </section>
+
+  <section class="grid-two">
+    <section class="card">
+      <h2>Qualificazione lead</h2>
+      <p class="muted">
+        Blocco minimo riusabile per tutti i progetti. I dettagli di dominio restano nelle note e nei workbot.
+      </p>
+      <form class="stack" method="post" action="/organizations/{{ organization.id }}">
+        <input type="hidden" name="form_type" value="lead_qualification">
+
+        <div class="grid-two compact">
+          <div>
+            <label for="qualification_fit_label">Fit</label>
+            <select id="qualification_fit_label" name="fit_label">
+              {% for option in ["", "alto", "medio", "basso"] %}
+                <option value="{{ option }}" {% if qualification_data.fit_label == option %}selected{% endif %}>{{ option or "non indicato" }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label for="qualification_priority_level">Priorita</label>
+            <select id="qualification_priority_level" name="priority_level">
+              {% for option in ["", "alta", "media", "bassa"] %}
+                <option value="{{ option }}" {% if qualification_data.priority_level == option %}selected{% endif %}>{{ option or "non indicata" }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <label for="qualification_opportunity_type">Tipo opportunita</label>
+        <select id="qualification_opportunity_type" name="opportunity_type">
+          {% for option in ["", "cliente", "partner", "moltiplicatore", "da_capire"] %}
+            <option value="{{ option }}" {% if qualification_data.opportunity_type == option %}selected{% endif %}>{{ option or "non indicato" }}</option>
+          {% endfor %}
+        </select>
+
+        <label for="qualification_signals">Segnali chiave</label>
+        <input id="qualification_signals" name="qualification_signals" type="text" value="{{ qualification_data.qualification_signals }}" placeholder="Es. PdR125, HR strutturata, programmazione stabile, territorio forte">
+
+        <label for="qualification_next_step">Prossimo passo</label>
+        <input id="qualification_next_step" name="next_step" type="text" value="{{ qualification_data.next_step }}" placeholder="Es. fare WB1, preparare contatto, tenere monitorato, scartare">
+
+        <label for="qualification_note">Nota di qualificazione</label>
+        <textarea id="qualification_note" name="qualification_note" rows="4" placeholder="Spiega in breve perche questo lead e promettente, debole o da approfondire.">{{ qualification_data.qualification_note }}</textarea>
+
+        <button type="submit">Salva qualificazione</button>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Stato qualificazione</h2>
+      {% if qualification_data.fit_label or qualification_data.opportunity_type or qualification_data.priority_level or qualification_data.qualification_signals or qualification_data.next_step or qualification_data.qualification_note %}
+        <dl class="detail-grid">
+          <div>
+            <dt>Fit</dt>
+            <dd>{{ qualification_data.fit_label or "-" }}</dd>
+          </div>
+          <div>
+            <dt>Priorita</dt>
+            <dd>{{ qualification_data.priority_level or "-" }}</dd>
+          </div>
+          <div>
+            <dt>Tipo opportunita</dt>
+            <dd>{{ qualification_data.opportunity_type or "-" }}</dd>
+          </div>
+          <div class="detail-span">
+            <dt>Segnali chiave</dt>
+            <dd>{{ qualification_data.qualification_signals or "-" }}</dd>
+          </div>
+          <div class="detail-span">
+            <dt>Prossimo passo</dt>
+            <dd>{{ qualification_data.next_step or "-" }}</dd>
+          </div>
+          <div class="detail-span">
+            <dt>Nota</dt>
+            <dd>{{ qualification_data.qualification_note or "-" }}</dd>
+          </div>
+        </dl>
+      {% else %}
+        <p class="muted">Nessuna qualificazione lead salvata.</p>
       {% endif %}
     </section>
   </section>
@@ -239,6 +323,34 @@
         Arricchimento manuale o assistito via chatbot per raccogliere email, telefono, referente, ruolo, sito e social
         di un lead gia presente nel CIS.
       </p>
+      {% if wb1_profile %}
+        <div class="subcard stack">
+          <p><strong>Guida rapida del profilo attivo</strong></p>
+          {% if wb1_profile.contact_goal %}
+            <p class="muted">{{ wb1_profile.contact_goal }}</p>
+          {% endif %}
+          {% if wb1_profile.priority_roles %}
+            <div>
+              <p><strong>Ruoli prioritari</strong></p>
+              <ul class="plain-list">
+                {% for item in wb1_profile.priority_roles %}
+                  <li>{{ item }}</li>
+                {% endfor %}
+              </ul>
+            </div>
+          {% endif %}
+          {% if wb1_profile.required_fields %}
+            <div>
+              <p><strong>Dati minimi da salvare</strong></p>
+              <ul class="plain-list">
+                {% for item in wb1_profile.required_fields %}
+                  <li>{{ item }}</li>
+                {% endfor %}
+              </ul>
+            </div>
+          {% endif %}
+        </div>
+      {% endif %}
       <form class="stack" method="post" action="/organizations/{{ organization.id }}">
         <input type="hidden" name="form_type" value="wb1_enrichment">
 
@@ -259,11 +371,11 @@
         <div class="grid-two compact">
           <div>
             <label for="wb1_contact_full_name">Referente</label>
-            <input id="wb1_contact_full_name" name="contact_full_name" type="text" value="{{ wb1_form_data.contact_full_name }}">
+            <input id="wb1_contact_full_name" name="contact_full_name" type="text" value="{{ wb1_form_data.contact_full_name }}" placeholder="Nome e cognome del referente, se verificato">
           </div>
           <div>
             <label for="wb1_contact_role">Ruolo</label>
-            <input id="wb1_contact_role" name="contact_role" type="text" value="{{ wb1_form_data.contact_role }}">
+            <input id="wb1_contact_role" name="contact_role" type="text" value="{{ wb1_form_data.contact_role }}" placeholder="Ruolo del referente o funzione emersa">
           </div>
         </div>
 
@@ -282,8 +394,23 @@
         <textarea id="wb1_social_profiles" name="social_profiles" rows="4">{{ wb1_form_data.social_profiles }}</textarea>
         <p class="muted">Una riga per profilo nel formato libero: piattaforma | url.</p>
 
+        <label for="wb1_verification_source">Fonte verifica</label>
+        <input id="wb1_verification_source" name="verification_source" type="text" value="{{ wb1_form_data.verification_source }}" placeholder="Pagina contatti, team, LinkedIn aziendale, sito ufficiale...">
+
+        <div class="grid-two compact">
+          <div>
+            <label for="wb1_contact_level">Livello contatto</label>
+            <input id="wb1_contact_level" name="contact_level" type="text" value="{{ wb1_form_data.contact_level }}" placeholder="decision maker, influencer, contatto ponte">
+          </div>
+          <div>
+            <label for="wb1_qualification_signals">Segnali qualificazione</label>
+            <input id="wb1_qualification_signals" name="qualification_signals" type="text" value="{{ wb1_form_data.qualification_signals }}" placeholder="PdR125, HR, ESG, governance, compliance">
+          </div>
+        </div>
+
         <label for="wb1_research_note">Note di verifica WB1</label>
-        <textarea id="wb1_research_note" name="research_note" rows="4">{{ wb1_form_data.research_note }}</textarea>
+        <textarea id="wb1_research_note" name="research_note" rows="4" placeholder="Annota solo cio che hai verificato o dedotto con buona confidenza.">{{ wb1_form_data.research_note }}</textarea>
+        <p class="muted">Usa le note per distinguere dati certi, canale generale e ruolo reale del referente.</p>
 
         <button type="submit">Salva WB1</button>
       </form>
