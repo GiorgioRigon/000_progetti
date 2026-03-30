@@ -1,0 +1,95 @@
+{
+  "profile_name": "Consulenza certificazione profilo operativo v1",
+  "updated_at": "2026-03-30",
+  "wb0": {
+    "search_focus": "Trovare organizzazioni realisticamente qualificabili e contattabili per servizi di consulenza su PdR125, parita di genere e temi affini collegati a governance, HR, ESG e compliance.",
+    "target_priorities": [
+      "aziende con contenuti pubblici su parita di genere, diversity, inclusion, welfare o ESG",
+      "organizzazioni con funzione HR, people, sostenibilita, governance o compliance ben visibile",
+      "aziende che pubblicano policy, bilanci di sostenibilita, codici etici o iniziative strutturate sul capitale umano",
+      "reti, associazioni, enti formativi o soggetti che possono generare domanda o partnership",
+      "PMI strutturate o gruppi che mostrano maturita organizzativa compatibile con un percorso certificativo"
+    ],
+    "include_signals": [
+      "pagina o documento che cita PdR125, parita di genere, ESG, CSR, diversity o certificazioni",
+      "presenza di bilancio di sostenibilita, report ESG, codice etico o policy DEI",
+      "presenza di iniziative strutturate su HR, governance o sostenibilita",
+      "ruoli o funzioni chiaramente dedicate a HR, people, ESG, compliance o direzione",
+      "organizzazione con dimensione o maturita compatibile con consulenza specialistica",
+      "sito ufficiale chiaro e dati verificabili"
+    ],
+    "exclude_signals": [
+      "siti incompleti o non aggiornati senza evidenze utili",
+      "organizzazioni fuori target rispetto al servizio",
+      "realta con segnali troppo deboli o puramente casuali",
+      "micro target senza struttura minima o senza alcun referente plausibile",
+      "soggetti che menzionano temi affini solo in modo generico e non operativo"
+    ],
+    "required_fields": [
+      "nome organization",
+      "tipo organization",
+      "territorio",
+      "sito ufficiale",
+      "evidenza sintetica di interesse verso PdR125 o temi affini",
+      "funzione aziendale o area tematica rilevante emersa dal sito",
+      "nota di qualificazione iniziale"
+    ],
+    "output_notes": [
+      "privilegiare segnali concreti e verificabili",
+      "se la relazione con PdR125 e indiretta, esplicitare il perche del possibile fit",
+      "distinguere tra lead potenzialmente cliente e lead potenzialmente partner o moltiplicatore",
+      "non forzare il fit se manca una base minima di maturita organizzativa"
+    ]
+  },
+  "wb1": {
+    "contact_goal": "Trovare un referente verificabile con responsabilita o influenza su HR, people, ESG, diversity, compliance o decisione di acquisto consulenziale.",
+    "priority_roles": [
+      "HR manager o HR director",
+      "head of HR o chief HR officer",
+      "people and culture manager",
+      "ESG o sustainability manager",
+      "diversity, equity and inclusion manager",
+      "compliance manager",
+      "responsabile sistemi di gestione o organizzazione",
+      "direzione generale o titolare per PMI"
+    ],
+    "secondary_roles": [
+      "ufficio HR",
+      "responsabile amministrazione o organizzazione",
+      "assistente di direzione",
+      "referente sostenibilita o CSR non decision maker",
+      "contatto generale corporate"
+    ],
+    "sources_to_check": [
+      "sito ufficiale",
+      "pagina team o management",
+      "pagina sostenibilita o ESG",
+      "pagina certificazioni o policy",
+      "pagina lavora con noi o people",
+      "LinkedIn aziendale o profili pubblici verificabili"
+    ],
+    "required_fields": [
+      "referente",
+      "ruolo",
+      "email diretta o generale affidabile",
+      "telefono",
+      "fonte o nota di verifica",
+      "eventuale indizio utile su PdR125 o altre certificazioni",
+      "indicazione se il referente e decision maker, influencer o contatto ponte"
+    ],
+    "verification_checks": [
+      "usare solo dati verificabili",
+      "distinguere chiaramente referente certo da referente probabile",
+      "annotare il punto del sito o della fonte da cui emerge il dato",
+      "privilegiare ruoli collegati a HR, governance, ESG o decisione acquisto",
+      "se non trovi email personale, salvare il miglior canale ufficiale disponibile",
+      "distinguere chiaramente canale generale, referente nominativo e ruolo decisionale"
+    ],
+    "output_notes": [
+      "se non emerge un referente nominativo, salvare almeno il miglior canale di contatto verificato",
+      "nelle note indicare qualunque evidenza utile alla futura qualificazione del lead",
+      "annotare se la leva principale sembra essere PdR125, ESG, HR, governance o compliance",
+      "se il contatto trovato e solo un ponte operativo, segnalarlo chiaramente"
+    ]
+  }
+}

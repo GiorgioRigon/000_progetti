@@ -1,0 +1,17 @@
+project:
+  key: consulenza_certificazione
+  name: Consulenza Certificazione Outreach
+  description: Ricerca target e referenti per servizi di consulenza sulla certificazione PdR125 e certificazioni collegate.
+  status: active
+  owner: Giorgio
+
+target:
+  sector: consulenza certificazione, HR, compliance, ESG e sostenibilita
+  geography: Italia
+  lead_goal_min: 20
+  lead_goal_max: 60
+
+workflow:
+  mode: human_in_the_loop
+  allow_automatic_outreach: false
+  default_campaign_status: draft

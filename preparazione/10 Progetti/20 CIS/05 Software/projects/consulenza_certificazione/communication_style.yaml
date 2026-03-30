@@ -1,0 +1,9 @@
+tone:
+  style: professionale, chiaro, consulenziale
+  formality: medio-alta
+
+messages:
+  principles:
+    - partire dal bisogno operativo del cliente
+    - evitare toni promozionali generici
+    - valorizzare competenza, chiarezza e affidabilita

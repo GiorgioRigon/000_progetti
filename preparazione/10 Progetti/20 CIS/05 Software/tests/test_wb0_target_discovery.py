@@ -279,6 +279,25 @@ class Wb0TargetDiscoveryTests(unittest.TestCase):
         self.assertGreaterEqual(len(sources), 1)
         self.assertEqual(sources[0]["name"], "festival_websites")
 
+        prompt_preview = build_prompt_preview(
+            research_goal="Trovare festival corali.",
+            project_context="Melodema, coro da camera.",
+            territory_target="Veneto",
+            target_types_text="festival\nteatri",
+            selected_sources=["festival_websites"],
+            research_prompt="Cerca festival corali nel territorio indicato.",
+            inclusion_criteria_text="programmazione musicale pubblica",
+            exclusion_criteria_text="eventi interni",
+            profile={
+                "search_focus": "Trovare target realistici per il coro.",
+                "target_priorities": ["festival corali", "teatri con programmazione musicale"],
+                "required_fields": ["nome organization", "sito ufficiale"],
+            },
+        )
+        self.assertIn("Focus operativo del profilo: Trovare target realistici per il coro.", prompt_preview)
+        self.assertIn("Target prioritari del profilo:", prompt_preview)
+        self.assertIn("Campi minimi da raccogliere:", prompt_preview)
+
         preview = build_prompt_preview(
             research_goal="Trovare enti per concerti corali.",
             project_context="Melodema, coro da camera.",

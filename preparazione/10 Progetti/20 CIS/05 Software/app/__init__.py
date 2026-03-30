@@ -14,6 +14,14 @@ from app.data_access import (
     OrganizationCreate,
     OrganizationRepository,
 )
+from app.workbot_profiles import load_workbot_profile
+from app.wb1_contact_hunter import (
+    build_contact_hunter_prompt,
+    extract_research_note,
+    extract_social_profiles,
+    merge_wb1_notes,
+    parse_multiline_field as parse_wb1_multiline_field,
+)
 from app.wb0_target_discovery import (
     DEFAULT_PROJECT_KEY,
     build_discovery_run,
@@ -34,6 +42,7 @@ from app.wb0_target_discovery import (
 def create_app(
     db_path: Path | str | None = None,
     projects_root: Path | str | None = None,
+    active_project_key: str = DEFAULT_PROJECT_KEY,
 ) -> Flask:
     base_dir = Path(__file__).resolve().parent.parent
     template_dir = base_dir / "templates"
@@ -43,6 +52,7 @@ def create_app(
     app.static_folder = str(static_dir)
     app.config["SECRET_KEY"] = "cis-local-dev"
     app.config["PROJECTS_ROOT"] = str(configured_projects_root)
+    app.config["ACTIVE_PROJECT_KEY"] = active_project_key
     _configure_logging(app)
     database = Database(db_path) if db_path is not None else Database()
     organizations = OrganizationRepository(database)
@@ -55,8 +65,9 @@ def create_app(
 
     @app.route("/wb0", methods=["GET", "POST"])
     def wb0_target_discovery() -> str:
-        project_key = DEFAULT_PROJECT_KEY
+        project_key = str(app.config["ACTIVE_PROJECT_KEY"])
         available_sources = load_project_sources(project_key, app.config["PROJECTS_ROOT"])
+        wb0_profile = load_workbot_profile(project_key, "wb0", app.config["PROJECTS_ROOT"])
         selected_run_file = request.args.get("run_file", "").strip()
         latest_run = load_latest_run(project_key, app.config["PROJECTS_ROOT"])
         selected_run = (
@@ -323,6 +334,7 @@ def create_app(
             form_data["research_prompt"],
             form_data["inclusion_criteria"],
             form_data["exclusion_criteria"],
+            profile=wb0_profile,
         )
         return render_template(
             "wb0_target_discovery.html",
@@ -434,6 +446,7 @@ def create_app(
         organization = organizations.get(organization_id)
         if organization is None:
             abort(404)
+        organization_contacts = contacts.list_by_organization(organization_id)
 
         if request.method == "POST":
             form_type = request.form.get("form_type", "organization")
@@ -547,15 +560,121 @@ def create_app(
                         extra={"organization_id": organization_id, "contact_id": contact_id},
                     )
                     flash("Contatto aggiornato correttamente.", "success")
+            elif form_type == "wb1_enrichment":
+                social_profiles = parse_wb1_multiline_field(request.form.get("social_profiles", ""))
+                contact_full_name = request.form.get("contact_full_name", "").strip()
+                contact_role = request.form.get("contact_role", "").strip()
+                contact_email = request.form.get("contact_email", "").strip()
+                contact_phone = request.form.get("contact_phone", "").strip()
+                website = request.form.get("website", "").strip()
+                general_email = request.form.get("general_email", "").strip()
+                general_phone = request.form.get("general_phone", "").strip()
+                research_note = request.form.get("research_note", "").strip()
+
+                if not any(
+                    [
+                        website,
+                        general_email,
+                        general_phone,
+                        contact_full_name,
+                        contact_role,
+                        contact_email,
+                        contact_phone,
+                        social_profiles,
+                        research_note,
+                    ]
+                ):
+                    flash("Inserisci almeno un dato WB1 da salvare.", "error")
+                    return redirect(url_for("organization_detail", organization_id=organization_id))
+
+                try:
+                    organizations.update(
+                        organization_id,
+                        OrganizationCreate(
+                            name=str(organization["name"]),
+                            campaign_id=organization["campaign_id"],
+                            organization_type=organization["organization_type"],
+                            sector=organization["sector"],
+                            city=organization["city"],
+                            region=organization["region"],
+                            country=organization["country"],
+                            website=website or organization["website"],
+                            phone=general_phone or organization["phone"],
+                            email=general_email or organization["email"],
+                            source=organization["source"],
+                            notes=merge_wb1_notes(
+                                existing_notes=organization["notes"],
+                                social_profiles=social_profiles,
+                                research_note=research_note,
+                            ),
+                        ),
+                    )
+
+                    if any([contact_full_name, contact_role, contact_email, contact_phone]):
+                        contacts.create(
+                            ContactCreate(
+                                organization_id=organization_id,
+                                full_name=contact_full_name or None,
+                                role=contact_role or None,
+                                email=contact_email or None,
+                                phone=contact_phone or None,
+                                notes="Contatto aggiunto da WB1 Contact Hunter.",
+                            )
+                        )
+                except Exception:
+                    app.logger.exception(
+                        "Failed to save WB1 enrichment",
+                        extra={"organization_id": organization_id},
+                    )
+                    flash("Non e stato possibile salvare i dati WB1.", "error")
+                else:
+                    app.logger.info(
+                        "WB1 enrichment saved",
+                        extra={"organization_id": organization_id},
+                    )
+                    flash("WB1 aggiornato correttamente.", "success")
 
             return redirect(url_for("organization_detail", organization_id=organization_id))
 
         organization = organizations.get(organization_id)
+        organization_contacts = contacts.list_by_organization(organization_id)
+        wb1_profile = load_workbot_profile(
+            str(app.config["ACTIVE_PROJECT_KEY"]),
+            "wb1",
+            app.config["PROJECTS_ROOT"],
+        )
+        wb1_prompt_preview = build_contact_hunter_prompt(
+            organization_name=str(organization.get("name", "") or ""),
+            organization_type=str(organization.get("organization_type", "") or ""),
+            city=str(organization.get("city", "") or ""),
+            region=str(organization.get("region", "") or ""),
+            country=str(organization.get("country", "") or ""),
+            website=str(organization.get("website", "") or ""),
+            current_email=str(organization.get("email", "") or ""),
+            current_phone=str(organization.get("phone", "") or ""),
+            existing_contacts=organization_contacts,
+            profile=wb1_profile,
+        )
+        wb1_form_data = {
+            "website": str(organization.get("website", "") or ""),
+            "general_email": str(organization.get("email", "") or ""),
+            "general_phone": str(organization.get("phone", "") or ""),
+            "contact_full_name": "",
+            "contact_role": "",
+            "contact_email": "",
+            "contact_phone": "",
+            "social_profiles": "\n".join(extract_social_profiles(organization.get("notes"))),
+            "research_note": extract_research_note(organization.get("notes")),
+        }
 
         return render_template(
             "organization_detail.html",
             organization=organization,
-            contacts=contacts.list_by_organization(organization_id),
+            contacts=organization_contacts,
+            wb1_prompt_preview=wb1_prompt_preview,
+            wb1_form_data=wb1_form_data,
+            wb1_social_profiles=extract_social_profiles(organization.get("notes")),
+            wb1_research_note=extract_research_note(organization.get("notes")),
         )
 
     @app.errorhandler(400)

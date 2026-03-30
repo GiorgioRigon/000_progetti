@@ -231,4 +231,97 @@
       <p class="top-gap muted">Nessun contatto associato.</p>
     {% endif %}
   </section>
+
+  <section class="grid-two">
+    <section class="card">
+      <h2>WB1 Contact Hunter</h2>
+      <p class="muted">
+        Arricchimento manuale o assistito via chatbot per raccogliere email, telefono, referente, ruolo, sito e social
+        di un lead gia presente nel CIS.
+      </p>
+      <form class="stack" method="post" action="/organizations/{{ organization.id }}">
+        <input type="hidden" name="form_type" value="wb1_enrichment">
+
+        <div class="grid-two compact">
+          <div>
+            <label for="wb1_website">Sito ufficiale</label>
+            <input id="wb1_website" name="website" type="url" value="{{ wb1_form_data.website }}">
+          </div>
+          <div>
+            <label for="wb1_general_email">Email generale</label>
+            <input id="wb1_general_email" name="general_email" type="email" value="{{ wb1_form_data.general_email }}">
+          </div>
+        </div>
+
+        <label for="wb1_general_phone">Telefono generale</label>
+        <input id="wb1_general_phone" name="general_phone" type="text" value="{{ wb1_form_data.general_phone }}">
+
+        <div class="grid-two compact">
+          <div>
+            <label for="wb1_contact_full_name">Referente</label>
+            <input id="wb1_contact_full_name" name="contact_full_name" type="text" value="{{ wb1_form_data.contact_full_name }}">
+          </div>
+          <div>
+            <label for="wb1_contact_role">Ruolo</label>
+            <input id="wb1_contact_role" name="contact_role" type="text" value="{{ wb1_form_data.contact_role }}">
+          </div>
+        </div>
+
+        <div class="grid-two compact">
+          <div>
+            <label for="wb1_contact_email">Email referente</label>
+            <input id="wb1_contact_email" name="contact_email" type="email" value="{{ wb1_form_data.contact_email }}">
+          </div>
+          <div>
+            <label for="wb1_contact_phone">Telefono referente</label>
+            <input id="wb1_contact_phone" name="contact_phone" type="text" value="{{ wb1_form_data.contact_phone }}">
+          </div>
+        </div>
+
+        <label for="wb1_social_profiles">Social ufficiali</label>
+        <textarea id="wb1_social_profiles" name="social_profiles" rows="4">{{ wb1_form_data.social_profiles }}</textarea>
+        <p class="muted">Una riga per profilo nel formato libero: piattaforma | url.</p>
+
+        <label for="wb1_research_note">Note di verifica WB1</label>
+        <textarea id="wb1_research_note" name="research_note" rows="4">{{ wb1_form_data.research_note }}</textarea>
+
+        <button type="submit">Salva WB1</button>
+      </form>
+    </section>
+
+    <section class="card stack">
+      <h2>Prompt preview WB1</h2>
+      <p class="muted">
+        Brief pronto da usare in chatbot per una ricerca assistita. Nessuna automazione esterna viene eseguita dal CIS.
+      </p>
+      {% if wb1_prompt_preview %}
+        <pre class="prompt-preview">{{ wb1_prompt_preview }}</pre>
+      {% else %}
+        <p class="muted">Mancano dati sufficienti per generare il brief WB1.</p>
+      {% endif %}
+
+      <h2>Dati WB1 salvati</h2>
+      {% if wb1_social_profiles %}
+        <div>
+          <p><strong>Social</strong></p>
+          <ul class="plain-list">
+            {% for profile in wb1_social_profiles %}
+              <li>{{ profile }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% else %}
+        <p class="muted">Nessun social salvato da WB1.</p>
+      {% endif %}
+
+      {% if wb1_research_note %}
+        <div>
+          <p><strong>Note di verifica</strong></p>
+          <p class="note-box">{{ wb1_research_note }}</p>
+        </div>
+      {% else %}
+        <p class="muted">Nessuna nota di verifica WB1 salvata.</p>
+      {% endif %}
+    </section>
+  </section>
 {% endblock %}

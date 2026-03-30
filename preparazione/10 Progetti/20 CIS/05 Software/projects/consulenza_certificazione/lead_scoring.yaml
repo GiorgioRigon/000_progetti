@@ -1,0 +1,18 @@
+scoring:
+  labels:
+    high: target prioritario
+    medium: target da approfondire
+    low: target marginale
+
+  rules:
+    - name: interesse_pdr125
+      description: evidenza pubblica di interesse per PdR125 o temi vicini
+      score: 30
+
+    - name: ruolo_hr_esg
+      description: presenza di funzione HR, ESG, diversity o compliance
+      score: 20
+
+    - name: fit_dimensionale
+      description: dimensione o maturita dell'organizzazione compatibile con il servizio
+      score: 10

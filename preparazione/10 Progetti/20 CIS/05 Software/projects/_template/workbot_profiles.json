@@ -1,0 +1,21 @@
+{
+  "profile_name": "Template base",
+  "updated_at": "2026-03-30",
+  "wb0": {
+    "search_focus": "",
+    "target_priorities": [],
+    "include_signals": [],
+    "exclude_signals": [],
+    "required_fields": [],
+    "output_notes": []
+  },
+  "wb1": {
+    "contact_goal": "",
+    "priority_roles": [],
+    "secondary_roles": [],
+    "sources_to_check": [],
+    "required_fields": [],
+    "verification_checks": [],
+    "output_notes": []
+  }
+}

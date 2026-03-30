@@ -1,6 +1,6 @@
-# CIS Resume Prompt WB0
+# CIS Resume Prompt WB1
 
-Usa questo prompt quando vuoi riprendere il progetto CIS in una nuova sessione Codex da terminale, a partire dallo stato attuale di `WB0`.
+Usa questo prompt quando vuoi riprendere il progetto CIS in una nuova sessione Codex da terminale, a partire dallo stato attuale di `WB1`.
 
 ```text
 Sto riprendendo il progetto CIS da questo punto.
@@ -19,9 +19,12 @@ Leggi in questo ordine:
 - 10 Progetti/20 CIS/05 Software/docs/DATA_MODEL.md
 - 10 Progetti/20 CIS/05 Software/app/__init__.py
 - 10 Progetti/20 CIS/05 Software/app/wb0_target_discovery.py
+- 10 Progetti/20 CIS/05 Software/app/wb1_contact_hunter.py
 - 10 Progetti/20 CIS/05 Software/app/data_access.py
 - 10 Progetti/20 CIS/05 Software/templates/wb0_target_discovery.html
+- 10 Progetti/20 CIS/05 Software/templates/organization_detail.html
 - 10 Progetti/20 CIS/05 Software/tests/test_wb0_target_discovery.py
+- 10 Progetti/20 CIS/05 Software/tests/test_wb1_contact_hunter.py
 
 Vincoli da rispettare:
 - non cambiare il perimetro MVP senza dirlo esplicitamente
@@ -34,14 +37,20 @@ Vincoli da rispettare:
 Contesto attuale da ricordare:
 - WB0 e stato sviluppato fino al ruolo di filtro operativo prima del database CIS
 - il run di WB0 e stato rifattorizzato per uso manuale via chatbot
-- in docs/DEVELOPMENT_NOTES.md ci sono note future su WB0
-- il prossimo passo naturale della roadmap e WB1, salvo mia diversa indicazione
+- WB1 Contact Hunter e stato implementato in versione base dentro la scheda organization
+- WB1 oggi permette arricchimento manuale o assistito via chatbot di sito, email, telefono, referente, ruolo e social
+- il prompt preview WB1 serve come brief locale per chatbot, senza automazioni esterne
+- i social e le note di verifica WB1 vengono salvati nelle note della organization
+- referente e ruolo vengono salvati come contatto associato
+- il controllo manuale resta sempre attivo
+- il prossimo lavoro probabile e rifinire i prompt/input di WB1 prima di passare oltre
+- nella prossima sessione potrei fornire uno o due template di prompt WB1 da usare come base
 
 Dopo la lettura:
 1. riassumi lo stato attuale in modo breve
 2. dimmi il prossimo passo naturale
 3. attendi il mio prossimo prompt
----
+```
 
 ## Punto di rientro consigliato
 
@@ -51,9 +60,9 @@ Se non ci sono nuove istruzioni, il punto di rientro consigliato e:
 
 Passi piu probabili da riprendere:
 
-- implementare `WB1 Contact Hunter`
-- consolidare o rifinire `WB0` solo se emergono nuove esigenze operative
-- usare `docs/DEVELOPMENT_NOTES.md` per memorizzare idee e decisioni future
+- rifinire i prompt di `WB1 Contact Hunter` partendo da 1 o 2 template reali
+- migliorare la qualita dell'input di `WB1` senza allargare il perimetro MVP
+- passare a `WB2 Lead Qualifier` solo dopo aver stabilizzato l'uso operativo di `WB1`
 
 ## File chiave del progetto
 
@@ -64,5 +73,6 @@ Passi piu probabili da riprendere:
 - [DATA_MODEL.md](/mnt/c/000_progetti/preparazione/10%20Progetti/20%20CIS/05%20Software/docs/DATA_MODEL.md)
 - [__init__.py](/mnt/c/000_progetti/preparazione/10%20Progetti/20%20CIS/05%20Software/app/__init__.py)
 - [wb0_target_discovery.py](/mnt/c/000_progetti/preparazione/10%20Progetti/20%20CIS/05%20Software/app/wb0_target_discovery.py)
-- [wb0_target_discovery.html](/mnt/c/000_progetti/preparazione/10%20Progetti/20%20CIS/05%20Software/templates/wb0_target_discovery.html)
-- [test_wb0_target_discovery.py](/mnt/c/000_progetti/preparazione/10%20Progetti/20%20CIS/05%20Software/tests/test_wb0_target_discovery.py)
+- [wb1_contact_hunter.py](/mnt/c/000_progetti/preparazione/10%20Progetti/20%20CIS/05%20Software/app/wb1_contact_hunter.py)
+- [organization_detail.html](/mnt/c/000_progetti/preparazione/10%20Progetti/20%20CIS/05%20Software/templates/organization_detail.html)
+- [test_wb1_contact_hunter.py](/mnt/c/000_progetti/preparazione/10%20Progetti/20%20CIS/05%20Software/tests/test_wb1_contact_hunter.py)

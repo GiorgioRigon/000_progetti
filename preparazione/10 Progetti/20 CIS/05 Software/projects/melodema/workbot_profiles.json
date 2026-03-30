@@ -1,0 +1,84 @@
+{
+  "profile_name": "Melodema profilo operativo v1",
+  "updated_at": "2026-03-30",
+  "wb0": {
+    "search_focus": "Trovare organizzazioni realisticamente contattabili che programmano o ospitano concerti corali, musica sacra o iniziative compatibili con un coro da camera.",
+    "target_priorities": [
+      "festival corali o festival con programmazione vocale stabile",
+      "diocesi, parrocchie, basiliche o santuari con stagioni musicali o rassegne sacre",
+      "teatri, auditorium e spazi culturali con programmazione musicale riconoscibile",
+      "comuni, assessorati o enti locali che promuovono eventi culturali e musicali",
+      "associazioni culturali o organizzatori con rassegne vocali, cameristiche o sacre"
+    ],
+    "include_signals": [
+      "programmazione musicale pubblica ricorrente",
+      "coerenza con repertorio corale, cameristico o sacro",
+      "territorio compatibile con l'attivita del coro",
+      "sito ufficiale o evidenza verificabile della programmazione",
+      "presenza di contatti organizzativi o artistici raggiungibili"
+    ],
+    "exclude_signals": [
+      "eventi interni non aperti al pubblico",
+      "organizzazioni senza evidenza di attivita musicale",
+      "target troppo distanti dal posizionamento artistico del coro",
+      "spazi che ospitano eventi sporadici senza programmazione chiara",
+      "target senza alcun canale di contatto verificabile"
+    ],
+    "required_fields": [
+      "nome organization",
+      "tipo organization",
+      "territorio",
+      "sito ufficiale se disponibile",
+      "fonte o indizio della programmazione",
+      "nota sintetica sul fit"
+    ],
+    "output_notes": [
+      "privilegiare target realisticamente contattabili",
+      "se il fit e dubbio, esplicitare il motivo nelle note",
+      "se emerge un evento singolo ma non una relazione stabile, segnalarlo chiaramente"
+    ]
+  },
+  "wb1": {
+    "contact_goal": "Trovare un referente verificabile per proposta concertistica, programmazione artistica o gestione eventi.",
+    "priority_roles": [
+      "direzione artistica",
+      "responsabile programmazione",
+      "ufficio eventi o cultura",
+      "parroco o responsabile musicale per enti religiosi",
+      "direzione organizzativa o segreteria artistica",
+      "biblioteche comunali con funzione di ufficio cultura e organizzazione eventi"
+    ],
+    "secondary_roles": [
+      "segreteria organizzativa",
+      "ufficio stampa",
+      "contatto generale",
+      "reception o segreteria ente"
+    ],
+    "sources_to_check": [
+      "sito ufficiale",
+      "pagina contatti",
+      "pagina staff o direzione artistica",
+      "pagina eventi o stagione",
+      "profili social ufficiali"
+    ],
+    "required_fields": [
+      "referente o contatto generale affidabile",
+      "ruolo",
+      "email",
+      "telefono se disponibile",
+      "sito ufficiale",
+      "nota breve su dove e stato trovato il contatto"
+    ],
+    "verification_checks": [
+      "usare solo dati verificabili",
+      "distinguere chiaramente dati ufficiali da ipotesi",
+      "annotare dove e stato trovato il contatto",
+      "privilegiare contatti legati a programmazione, eventi o direzione artistica"
+    ],
+    "output_notes": [
+      "se non emerge un referente diretto, salvare almeno un contatto generale utile",
+      "privilegiare referenti con ruolo coerente con la programmazione artistica",
+      "nelle note distinguere canale generale da contatto personale"
+    ]
+  }
+}

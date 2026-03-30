@@ -1,0 +1,20 @@
+sources:
+  - name: company_websites
+    enabled: true
+    type: public_web
+    notes: Siti ufficiali di aziende, studi professionali e organizzazioni target.
+
+  - name: certification_pages
+    enabled: true
+    type: public_web
+    notes: Pagine dedicate a PdR125, sostenibilita, ESG, diversity, compliance o certificazioni.
+
+  - name: business_directories
+    enabled: true
+    type: directory
+    notes: Directory di imprese, associazioni di categoria, reti territoriali e soggetti collegati.
+
+  - name: linkedin_and_social
+    enabled: true
+    type: social
+    notes: Profili aziendali e canali utili a verificare ruoli e referenti.

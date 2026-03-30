@@ -6,6 +6,8 @@ from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 
+from app.workbot_profiles import normalize_profile_list, normalize_profile_text
+
 
 DEFAULT_PROJECT_KEY = "melodema"
 
@@ -293,10 +295,18 @@ def build_prompt_preview(
     research_prompt: str,
     inclusion_criteria_text: str,
     exclusion_criteria_text: str,
+    profile: dict | None = None,
 ) -> str:
     target_types = parse_multiline_field(target_types_text)
     inclusion_criteria = parse_multiline_field(inclusion_criteria_text)
     exclusion_criteria = parse_multiline_field(exclusion_criteria_text)
+    normalized_profile = profile or {}
+    profile_focus = normalize_profile_text(normalized_profile, "search_focus")
+    profile_target_priorities = normalize_profile_list(normalized_profile, "target_priorities")
+    profile_include_signals = normalize_profile_list(normalized_profile, "include_signals")
+    profile_exclude_signals = normalize_profile_list(normalized_profile, "exclude_signals")
+    profile_required_fields = normalize_profile_list(normalized_profile, "required_fields")
+    profile_output_notes = normalize_profile_list(normalized_profile, "output_notes")
     if not any(
         [
             research_goal.strip(),
@@ -307,6 +317,12 @@ def build_prompt_preview(
             research_prompt.strip(),
             inclusion_criteria,
             exclusion_criteria,
+            profile_focus,
+            profile_target_priorities,
+            profile_include_signals,
+            profile_exclude_signals,
+            profile_required_fields,
+            profile_output_notes,
         ]
     ):
         return ""
@@ -317,14 +333,30 @@ def build_prompt_preview(
         f"Territorio target: {territory_target.strip() or '[da definire]'}",
         f"Tipi di target: {', '.join(target_types) if target_types else '[da definire]'}",
         f"Fonti da interrogare: {', '.join(selected_sources) if selected_sources else '[da definire]'}",
-        "",
-        "Prompt base:",
-        research_prompt.strip() or "[da definire]",
     ]
+    if profile_focus:
+        lines.extend(["", f"Focus operativo del profilo: {profile_focus}"])
+    if profile_target_priorities:
+        lines.extend(["", "Target prioritari del profilo:", *[f"- {item}" for item in profile_target_priorities]])
+    if profile_include_signals:
+        lines.extend(["", "Segnali di buon fit:", *[f"- {item}" for item in profile_include_signals]])
+    if profile_exclude_signals:
+        lines.extend(["", "Segnali di esclusione o cautela:", *[f"- {item}" for item in profile_exclude_signals]])
+    if profile_required_fields:
+        lines.extend(["", "Campi minimi da raccogliere:", *[f"- {item}" for item in profile_required_fields]])
+    lines.extend(
+        [
+            "",
+            "Prompt base:",
+            research_prompt.strip() or "[da definire]",
+        ]
+    )
     if inclusion_criteria:
         lines.extend(["", "Criteri di inclusione:", *[f"- {item}" for item in inclusion_criteria]])
     if exclusion_criteria:
         lines.extend(["", "Criteri di esclusione:", *[f"- {item}" for item in exclusion_criteria]])
+    if profile_output_notes:
+        lines.extend(["", "Note operative del profilo:", *[f"- {item}" for item in profile_output_notes]])
     return "\n".join(lines)
 
 
