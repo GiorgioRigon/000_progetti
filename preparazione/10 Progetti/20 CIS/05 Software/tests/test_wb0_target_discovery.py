@@ -59,6 +59,34 @@ class Wb0TargetDiscoveryTests(unittest.TestCase):
             self.assertEqual(payload["inclusion_criteria"][0], "programmazione musicale pubblica")
             self.assertEqual(payload["candidate_count"], 2)
 
+    def test_save_discovery_run_truncates_long_goal_slug(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            projects_root = Path(temp_dir) / "projects"
+            run = build_discovery_run(
+                research_goal=(
+                    "Trovare aziende italiane realisticamente qualificabili e contattabili per "
+                    "servizi di consulenza su PdR125, parita di genere, ESG, governance e compliance"
+                ),
+                project_context="Ethics, consulenza su PdR125.",
+                territory_target="Italia",
+                target_types_text="aziende",
+                selected_sources=["company_websites"],
+                research_prompt="Cerca aziende italiane con segnali pubblici utili.",
+                prompt_variants_text="",
+                inclusion_criteria_text="sito ufficiale",
+                exclusion_criteria_text="nessuna evidenza verificabile",
+                raw_candidates=(
+                    "Vecomp | azienda ICT | Verona | Veneto | Italia | https://www.vecomp.it | "
+                    "Pagina dedicata alla parita di genere"
+                ),
+                project_key="ethics",
+            )
+
+            saved_path = save_discovery_run(run, projects_root)
+
+            self.assertTrue(saved_path.exists())
+            self.assertLess(len(saved_path.name), 140)
+
     def test_wb0_page_saves_latest_run(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             db_path = Path(temp_dir) / "test.sqlite3"

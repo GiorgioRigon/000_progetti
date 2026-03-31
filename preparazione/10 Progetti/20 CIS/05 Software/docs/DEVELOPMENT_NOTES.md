@@ -18,6 +18,7 @@ Appunti e idee di sviluppo del progetto CIS, organizzati per argomento.
 - il run e stato rifattorizzato per uso manuale via chatbot
 - il prompt preview di `WB0` puo iniziare a leggere un profilo operativo specifico per progetto
 - `WB0` puo guidare meglio la review manuale mostrando focus del profilo, campi minimi, segnali di fit e checklist prima dell'import
+- il filename dei run `WB0` deve restare corto e compatibile con Windows: il titolo del run va slugificato e troncato per evitare errori di salvataggio
 
 ### Idee future
 

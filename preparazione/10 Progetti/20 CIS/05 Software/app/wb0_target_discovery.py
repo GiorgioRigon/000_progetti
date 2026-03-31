@@ -10,6 +10,7 @@ from app.workbot_profiles import normalize_profile_list, normalize_profile_text
 
 
 DEFAULT_PROJECT_KEY = "melodema"
+MAX_RUN_GOAL_SLUG_LENGTH = 80
 
 
 @dataclass(slots=True)
@@ -148,7 +149,7 @@ def save_discovery_run(run: DiscoveryRun, projects_root: Path | str) -> Path:
     output_dir.mkdir(parents=True, exist_ok=True)
 
     timestamp_slug = run.created_at.replace(":", "").replace("-", "")
-    goal_slug = _slugify(run.research_goal)
+    goal_slug = _slugify(run.research_goal, max_length=MAX_RUN_GOAL_SLUG_LENGTH)
     run_path = output_dir / f"{timestamp_slug}_{goal_slug}.json"
     latest_path = output_dir / "latest.json"
 
@@ -485,6 +486,8 @@ def _legacy_prompt(keyword: str, geography: str) -> str:
     return keyword or geography
 
 
-def _slugify(value: str) -> str:
+def _slugify(value: str, max_length: int | None = None) -> str:
     normalized = re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")
+    if max_length is not None and max_length > 0:
+        normalized = normalized[:max_length].strip("-")
     return normalized or "discovery"
