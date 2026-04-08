@@ -130,6 +130,10 @@ Appunti e idee di sviluppo del progetto CIS, organizzati per argomento.
 - lo Step 7 resta un consolidamento finale, non un'estensione di perimetro
 - in Step 7 conviene dare priorita a chiarimenti operativi, micro-correzioni UX/testuali e pulizia minima di profili o prompt
 - in Step 7 non conviene introdurre nuovo schema dati, nuove automazioni esterne o un workflow commerciale piu complesso
+- le idee fuori perimetro MVP o non prioritarie per Step 7 vanno parcheggiate in `docs/OUT_OF_SCOPE_IDEAS.md`
+- la roadmap di 2 settimane su profili `WB0` e `WB1` puo considerarsi chiusa
+- il rientro nella roadmap principale deve ripartire dal gap MVP piu concreto rimasto: bozza outreach modificabile e storico minimo, prima di funzioni piu evolute
+- la decisione operativa del prossimo step e salvata anche in `docs/NEXT_STEP_OUTREACH_MINIMUM.md`
 
 ### Attriti emersi da ricordare
 
