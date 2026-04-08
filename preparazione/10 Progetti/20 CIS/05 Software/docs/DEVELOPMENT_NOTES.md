@@ -121,3 +121,18 @@ Appunti e idee di sviluppo del progetto CIS, organizzati per argomento.
 - tutte le organization esistenti possono essere attribuite a `melodema`
 - nuove organization manuali, import CSV e import da `WB0` ereditano il progetto attivo
 - la lista `Organizations` deve mostrare solo le organization del progetto attivo
+
+## Step 7
+
+### Decisioni correnti
+
+- dopo l'uso reale su `ethics`, lo Step 6 puo considerarsi sostanzialmente chiuso come verifica operativa MVP
+- lo Step 7 resta un consolidamento finale, non un'estensione di perimetro
+- in Step 7 conviene dare priorita a chiarimenti operativi, micro-correzioni UX/testuali e pulizia minima di profili o prompt
+- in Step 7 non conviene introdurre nuovo schema dati, nuove automazioni esterne o un workflow commerciale piu complesso
+
+### Attriti emersi da ricordare
+
+- il confine tra `WB1` e qualificazione lead va mantenuto esplicito: `WB1` arricchisce il lead, la qualificazione decide il passo commerciale
+- alcuni lead importati da `WB0` sono validi come prova di filtro ma non ancora pronti per uso commerciale senza un passaggio `WB1` minimo
+- la chiusura pratica di sessione deve lasciare sempre un `prossimo passo` chiaro nella qualificazione lead
