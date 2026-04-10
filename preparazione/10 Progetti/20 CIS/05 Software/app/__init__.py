@@ -11,13 +11,23 @@ from app.data_access import (
     ContactCreate,
     ContactRepository,
     Database,
+    MessageCreate,
+    MessageRepository,
     OrganizationCreate,
     OrganizationRepository,
+    OutreachActionCreate,
+    OutreachActionRepository,
 )
 from app.lead_qualification import (
     build_qualification_note,
     extract_qualification_data,
     merge_qualification_notes,
+)
+from app.outreach_drafter import (
+    DEFAULT_TEMPLATE_NAME,
+    build_outreach_draft,
+    list_outreach_templates,
+    suggest_outreach_template,
 )
 from app.project_registry import list_projects
 from app.workbot_profiles import load_workbot_profile
@@ -65,6 +75,8 @@ def create_app(
     database = Database(db_path) if db_path is not None else Database()
     organizations = OrganizationRepository(database)
     contacts = ContactRepository(database)
+    outreach_actions = OutreachActionRepository(database)
+    messages = MessageRepository(database)
     app.logger.info("CIS app initialized", extra={"db_path": str(database.db_path)})
 
     def get_active_project_key() -> str:
@@ -514,6 +526,23 @@ def create_app(
         if organization is None:
             abort(404)
         organization_contacts = contacts.list_by_organization(organization_id)
+        organization_messages = messages.list_by_organization(organization_id)
+        available_outreach_templates = list_outreach_templates(
+            str(organization.get("project_key") or get_active_project_key()),
+            app.config["PROJECTS_ROOT"],
+        )
+        suggested_template = suggest_outreach_template(
+            available_outreach_templates,
+            organization_contacts[0] if organization_contacts else None,
+        )
+        selected_template_name = _resolve_outreach_template_name(
+            request.args.get("template_name", "") or str((suggested_template or {}).get("name") or ""),
+            available_outreach_templates,
+        )
+        selected_template_metadata = _find_outreach_template_metadata(
+            selected_template_name,
+            available_outreach_templates,
+        )
 
         if request.method == "POST":
             form_type = request.form.get("form_type", "organization")
@@ -755,11 +784,168 @@ def create_app(
                         extra={"organization_id": organization_id},
                     )
                     flash("Qualificazione lead aggiornata correttamente.", "success")
+            elif form_type == "outreach_draft":
+                selected_contact_id = _parse_optional_contact_id(
+                    request.form.get("contact_id", ""),
+                    organization_contacts,
+                )
+                draft_subject = request.form.get("subject", "").strip()
+                draft_body = request.form.get("body", "").strip()
+                template_name = _resolve_outreach_template_name(
+                    request.form.get("template_name", ""),
+                    available_outreach_templates,
+                )
 
-            return redirect(url_for("organization_detail", organization_id=organization_id))
+                if not draft_subject and not draft_body:
+                    flash("Genera o compila una bozza outreach prima di salvarla.", "error")
+                    return redirect(
+                        url_for(
+                            "organization_detail",
+                            organization_id=organization_id,
+                            template_name=template_name,
+                        )
+                    )
+
+                try:
+                    action_id = outreach_actions.create(
+                        OutreachActionCreate(
+                            campaign_id=organization.get("campaign_id"),
+                            organization_id=organization_id,
+                            contact_id=selected_contact_id,
+                            action_type="draft_outreach",
+                            channel="email",
+                            status="draft",
+                            summary=_build_outreach_summary(draft_subject, organization.get("name")),
+                        )
+                    )
+                    messages.create(
+                        MessageCreate(
+                            outreach_action_id=action_id,
+                            organization_id=organization_id,
+                            contact_id=selected_contact_id,
+                            direction="outbound",
+                            channel="email",
+                            subject=draft_subject or None,
+                            body=draft_body or None,
+                            status="draft",
+                        )
+                    )
+                except Exception:
+                    app.logger.exception(
+                        "Failed to save outreach draft",
+                        extra={"organization_id": organization_id},
+                    )
+                    flash("Non e stato possibile salvare la bozza outreach.", "error")
+                else:
+                    app.logger.info(
+                        "Outreach draft saved",
+                        extra={"organization_id": organization_id, "contact_id": selected_contact_id},
+                    )
+                    flash("Bozza outreach salvata correttamente.", "success")
+            elif form_type == "outreach_regenerate":
+                selected_contact_id = _parse_optional_contact_id(
+                    request.form.get("contact_id", ""),
+                    organization_contacts,
+                )
+                selected_contact = next(
+                    (contact for contact in organization_contacts if int(contact["id"]) == selected_contact_id),
+                    None,
+                )
+                template_name = _resolve_outreach_template_name(
+                    request.form.get("template_name", ""),
+                    available_outreach_templates,
+                )
+
+                organization = organizations.get(organization_id)
+                organization_contacts = contacts.list_by_organization(organization_id)
+                organization_messages = messages.list_by_organization(organization_id)
+                qualification_data = extract_qualification_data(organization.get("notes"))
+                wb1_profile = load_workbot_profile(
+                    get_active_project_key(),
+                    "wb1",
+                    app.config["PROJECTS_ROOT"],
+                )
+                wb1_prompt_preview = build_contact_hunter_prompt(
+                    organization_name=str(organization.get("name", "") or ""),
+                    organization_type=str(organization.get("organization_type", "") or ""),
+                    city=str(organization.get("city", "") or ""),
+                    region=str(organization.get("region", "") or ""),
+                    country=str(organization.get("country", "") or ""),
+                    website=str(organization.get("website", "") or ""),
+                    current_email=str(organization.get("email", "") or ""),
+                    current_phone=str(organization.get("phone", "") or ""),
+                    existing_contacts=organization_contacts,
+                    profile=wb1_profile,
+                )
+                wb1_research_metadata = extract_research_metadata(organization.get("notes"))
+                wb1_form_data = {
+                    "website": str(organization.get("website", "") or ""),
+                    "general_email": str(organization.get("email", "") or ""),
+                    "general_phone": str(organization.get("phone", "") or ""),
+                    "contact_full_name": "",
+                    "contact_role": "",
+                    "contact_email": "",
+                    "contact_phone": "",
+                    "social_profiles": "\n".join(extract_social_profiles(organization.get("notes"))),
+                    "research_note": wb1_research_metadata["research_note"],
+                    "verification_source": wb1_research_metadata["verification_source"],
+                    "contact_level": wb1_research_metadata["contact_level"],
+                    "qualification_signals": wb1_research_metadata["qualification_signals"],
+                }
+                outreach_template_error = ""
+                outreach_template_path = ""
+                outreach_form_data = {
+                    "template_name": template_name,
+                    "contact_id": str(selected_contact_id) if selected_contact_id else "",
+                    "subject": "",
+                    "body": "",
+                }
+                try:
+                    outreach_draft = build_outreach_draft(
+                        project_key=str(organization.get("project_key") or get_active_project_key()),
+                        projects_root=app.config["PROJECTS_ROOT"],
+                        organization=organization,
+                        contact=selected_contact,
+                        qualification_data=qualification_data,
+                        template_name=template_name,
+                    )
+                except (FileNotFoundError, ValueError) as error:
+                    outreach_template_error = str(error)
+                else:
+                    outreach_template_path = outreach_draft.template_path
+                    outreach_form_data["subject"] = outreach_draft.subject
+                    outreach_form_data["body"] = outreach_draft.body
+
+                return render_template(
+                    "organization_detail.html",
+                    organization=organization,
+                    contacts=organization_contacts,
+                    available_outreach_templates=available_outreach_templates,
+                    suggested_template=suggested_template,
+                    selected_template_metadata=selected_template_metadata,
+                    outreach_history=organization_messages,
+                    outreach_form_data=outreach_form_data,
+                    outreach_template_error=outreach_template_error,
+                    outreach_template_path=outreach_template_path,
+                    qualification_data=qualification_data,
+                    wb1_profile=wb1_profile,
+                    wb1_prompt_preview=wb1_prompt_preview,
+                    wb1_form_data=wb1_form_data,
+                    wb1_social_profiles=extract_social_profiles(organization.get("notes")),
+                    wb1_research_note=extract_research_note(organization.get("notes")),
+                )
+
+            return redirect(
+                url_for(
+                    "organization_detail",
+                    organization_id=organization_id,
+                    template_name=template_name if form_type in {"outreach_draft", "outreach_regenerate"} else selected_template_name,
+                )
+            )
 
         organization = organizations.get(organization_id)
         organization_contacts = contacts.list_by_organization(organization_id)
+        organization_messages = messages.list_by_organization(organization_id)
         qualification_data = extract_qualification_data(organization.get("notes"))
         wb1_profile = load_workbot_profile(
             get_active_project_key(),
@@ -793,11 +979,42 @@ def create_app(
             "contact_level": wb1_research_metadata["contact_level"],
             "qualification_signals": wb1_research_metadata["qualification_signals"],
         }
+        selected_outreach_contact = organization_contacts[0] if organization_contacts else None
+        outreach_template_error = ""
+        outreach_template_path = ""
+        outreach_form_data = {
+            "template_name": selected_template_name,
+            "contact_id": str(selected_outreach_contact.get("id")) if selected_outreach_contact else "",
+            "subject": "",
+            "body": "",
+        }
+        try:
+            outreach_draft = build_outreach_draft(
+                project_key=str(organization.get("project_key") or get_active_project_key()),
+                projects_root=app.config["PROJECTS_ROOT"],
+                organization=organization,
+                contact=selected_outreach_contact,
+                qualification_data=qualification_data,
+                template_name=selected_template_name,
+            )
+        except (FileNotFoundError, ValueError) as error:
+            outreach_template_error = str(error)
+        else:
+            outreach_template_path = outreach_draft.template_path
+            outreach_form_data["subject"] = outreach_draft.subject
+            outreach_form_data["body"] = outreach_draft.body
 
         return render_template(
             "organization_detail.html",
             organization=organization,
             contacts=organization_contacts,
+            available_outreach_templates=available_outreach_templates,
+            suggested_template=suggested_template,
+            selected_template_metadata=selected_template_metadata,
+            outreach_history=organization_messages,
+            outreach_form_data=outreach_form_data,
+            outreach_template_error=outreach_template_error,
+            outreach_template_path=outreach_template_path,
             qualification_data=qualification_data,
             wb1_profile=wb1_profile,
             wb1_prompt_preview=wb1_prompt_preview,
@@ -900,3 +1117,49 @@ def _clean_form_value(value: object) -> str | None:
         return None
     cleaned = str(value).strip()
     return cleaned or None
+
+
+def _parse_optional_contact_id(contact_id_raw: str, organization_contacts: list[dict[str, object]]) -> int | None:
+    cleaned = contact_id_raw.strip()
+    if not cleaned:
+        return None
+    if not cleaned.isdigit():
+        abort(400, description="ID contatto non valido per la bozza outreach.")
+
+    contact_id = int(cleaned)
+    valid_contact_ids = {int(contact["id"]) for contact in organization_contacts}
+    if contact_id not in valid_contact_ids:
+        abort(404)
+    return contact_id
+
+
+def _build_outreach_summary(subject: str, organization_name: object) -> str:
+    cleaned_subject = subject.strip()
+    if cleaned_subject:
+        return cleaned_subject[:200]
+    return f"Bozza outreach per {organization_name}"
+
+
+def _resolve_outreach_template_name(
+    requested_template_name: str,
+    available_templates: list[dict[str, str]],
+) -> str:
+    available_names = [template["name"] for template in available_templates]
+    cleaned = requested_template_name.strip()
+    if cleaned and cleaned in available_names:
+        return cleaned
+    if DEFAULT_TEMPLATE_NAME in available_names:
+        return DEFAULT_TEMPLATE_NAME
+    if available_names:
+        return available_names[0]
+    return DEFAULT_TEMPLATE_NAME
+
+
+def _find_outreach_template_metadata(
+    template_name: str,
+    available_templates: list[dict[str, object]],
+) -> dict[str, object]:
+    for template in available_templates:
+        if template.get("name") == template_name:
+            return template
+    return {"name": template_name, "label": template_name, "description": "", "tags": []}

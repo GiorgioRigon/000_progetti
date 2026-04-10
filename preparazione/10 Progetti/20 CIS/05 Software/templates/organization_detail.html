@@ -205,6 +205,92 @@
     </section>
   </section>
 
+  <section class="grid-two">
+    <section class="card">
+      <h2>WB4 Outreach Drafter</h2>
+      <p class="muted">
+        Bozza email minima da template del progetto attivo. La bozza resta sempre modificabile e viene salvata solo manualmente.
+      </p>
+      {% if outreach_template_error %}
+        <p class="muted">{{ outreach_template_error }}</p>
+      {% else %}
+        {% if outreach_template_path %}
+          <p class="muted"><strong>Template:</strong> {{ outreach_template_path }}</p>
+        {% endif %}
+        <form class="stack" method="post" action="/organizations/{{ organization.id }}">
+          <label for="outreach_template_name">Bozza da usare</label>
+          {% if suggested_template %}
+            <p class="muted"><strong>Consigliata:</strong> {{ suggested_template.label }}</p>
+          {% endif %}
+          <select id="outreach_template_name" name="template_name">
+            {% for template in available_outreach_templates %}
+              <option value="{{ template.name }}" {% if outreach_form_data.template_name == template.name %}selected{% endif %}>
+                {{ template.label }}
+              </option>
+            {% endfor %}
+          </select>
+          {% if selected_template_metadata.description %}
+            <p class="muted">{{ selected_template_metadata.description }}</p>
+          {% endif %}
+          {% if selected_template_metadata.tags %}
+            <p class="muted">Tag: {{ selected_template_metadata.tags | join(", ") }}</p>
+          {% endif %}
+
+          <label for="outreach_contact_id">Contatto collegato</label>
+          <select id="outreach_contact_id" name="contact_id">
+            <option value="">Nessun contatto specifico</option>
+            {% for contact in contacts %}
+              {% set contact_label = contact.full_name or ((contact.first_name or "") ~ " " ~ (contact.last_name or "")).strip() %}
+              <option value="{{ contact.id }}" {% if outreach_form_data.contact_id == (contact.id | string) %}selected{% endif %}>
+                {{ contact_label or "Contatto senza nome" }}{% if contact.role %} | {{ contact.role }}{% endif %}
+              </option>
+            {% endfor %}
+          </select>
+
+          <label for="outreach_subject">Oggetto</label>
+          <input id="outreach_subject" name="subject" type="text" value="{{ outreach_form_data.subject }}">
+
+          <label for="outreach_body">Bozza outreach</label>
+          <textarea id="outreach_body" name="body" rows="12">{{ outreach_form_data.body }}</textarea>
+
+          <div class="actions">
+            <button type="submit" name="form_type" value="outreach_regenerate" class="button button-secondary">Rigenera da template</button>
+            <button type="submit" name="form_type" value="outreach_draft">Salva bozza outreach</button>
+          </div>
+        </form>
+      {% endif %}
+    </section>
+
+    <section class="card">
+      <h2>Storico outreach</h2>
+      {% if outreach_history %}
+        <div class="stack">
+          {% for item in outreach_history %}
+            <article class="subcard stack">
+              <div>
+                <h3>{{ item.subject or "Bozza senza oggetto" }}</h3>
+                <p class="muted">
+                  {{ item.created_at }} | {{ item.channel }} | {{ item.status }}
+                  {% if item.contact_full_name %} | {{ item.contact_full_name }}{% endif %}
+                </p>
+                {% if item.action_summary %}
+                  <p class="muted">{{ item.action_summary }}</p>
+                {% endif %}
+              </div>
+              {% if item.body %}
+                <p class="note-box">{{ item.body }}</p>
+              {% else %}
+                <p class="muted">Nessun testo salvato.</p>
+              {% endif %}
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="muted">Nessuna bozza outreach salvata.</p>
+      {% endif %}
+    </section>
+  </section>
+
   <section class="card">
     <h2>Contatti associati</h2>
     <form class="stack" method="post" action="/organizations/{{ organization.id }}">

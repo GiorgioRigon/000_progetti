@@ -50,6 +50,31 @@ class ContactCreate:
     notes: str | None = None
 
 
+@dataclass(slots=True)
+class OutreachActionCreate:
+    organization_id: int
+    action_type: str
+    campaign_id: int | None = None
+    contact_id: int | None = None
+    channel: str | None = None
+    status: str = "planned"
+    due_date: str | None = None
+    completed_at: str | None = None
+    summary: str | None = None
+
+
+@dataclass(slots=True)
+class MessageCreate:
+    organization_id: int
+    channel: str
+    outreach_action_id: int | None = None
+    contact_id: int | None = None
+    direction: str = "outbound"
+    subject: str | None = None
+    body: str | None = None
+    status: str = "draft"
+
+
 class Database:
     def __init__(self, db_path: Path | str = DEFAULT_DB_PATH) -> None:
         self.db_path = Path(db_path)
@@ -292,6 +317,84 @@ class ContactRepository:
             SELECT * FROM contacts
             WHERE organization_id = ?
             ORDER BY created_at DESC, id DESC
+        """
+        with self.database.connect() as connection:
+            rows = connection.execute(query, (organization_id,)).fetchall()
+        return [dict(row) for row in rows]
+
+
+class OutreachActionRepository:
+    def __init__(self, database: Database) -> None:
+        self.database = database
+
+    def create(self, outreach_action: OutreachActionCreate) -> int:
+        query = """
+            INSERT INTO outreach_actions (
+                campaign_id, organization_id, contact_id, action_type, channel,
+                status, due_date, completed_at, summary
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """
+        values = (
+            outreach_action.campaign_id,
+            outreach_action.organization_id,
+            outreach_action.contact_id,
+            outreach_action.action_type,
+            outreach_action.channel,
+            outreach_action.status,
+            outreach_action.due_date,
+            outreach_action.completed_at,
+            outreach_action.summary,
+        )
+        with self.database.connect() as connection:
+            cursor = connection.execute(query, values)
+            connection.commit()
+            return int(cursor.lastrowid)
+
+
+class MessageRepository:
+    def __init__(self, database: Database) -> None:
+        self.database = database
+
+    def create(self, message: MessageCreate) -> int:
+        query = """
+            INSERT INTO messages (
+                outreach_action_id, organization_id, contact_id, direction, channel,
+                subject, body, status
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """
+        values = (
+            message.outreach_action_id,
+            message.organization_id,
+            message.contact_id,
+            message.direction,
+            message.channel,
+            message.subject,
+            message.body,
+            message.status,
+        )
+        with self.database.connect() as connection:
+            cursor = connection.execute(query, values)
+            connection.commit()
+            return int(cursor.lastrowid)
+
+    def list_by_organization(self, organization_id: int) -> list[dict[str, Any]]:
+        query = """
+            SELECT
+                messages.*,
+                outreach_actions.action_type,
+                outreach_actions.summary AS action_summary,
+                outreach_actions.due_date,
+                contacts.full_name AS contact_full_name,
+                contacts.role AS contact_role
+            FROM messages
+            LEFT JOIN outreach_actions
+                ON outreach_actions.id = messages.outreach_action_id
+            LEFT JOIN contacts
+                ON contacts.id = messages.contact_id
+            WHERE messages.organization_id = ?
+            ORDER BY messages.created_at DESC, messages.id DESC
         """
         with self.database.connect() as connection:
             rows = connection.execute(query, (organization_id,)).fetchall()

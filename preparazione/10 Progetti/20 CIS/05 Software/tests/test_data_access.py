@@ -18,8 +18,12 @@ from app.data_access import (  # noqa: E402
     ContactCreate,
     ContactRepository,
     Database,
+    MessageCreate,
+    MessageRepository,
     OrganizationCreate,
     OrganizationRepository,
+    OutreachActionCreate,
+    OutreachActionRepository,
 )
 
 
@@ -66,6 +70,8 @@ class DataAccessCrudTests(unittest.TestCase):
         self.campaigns = CampaignRepository(self.database)
         self.organizations = OrganizationRepository(self.database)
         self.contacts = ContactRepository(self.database)
+        self.outreach_actions = OutreachActionRepository(self.database)
+        self.messages = MessageRepository(self.database)
 
     def tearDown(self) -> None:
         self.temp_dir.cleanup()
@@ -144,6 +150,52 @@ class DataAccessCrudTests(unittest.TestCase):
         self.assertEqual(melodema_organizations[0]["name"], "Basilica di Santa Cecilia")
         self.assertEqual(len(ethics_organizations), 1)
         self.assertEqual(ethics_organizations[0]["name"], "Ethics Advisory Group")
+
+    def test_can_create_outreach_action_and_message_history(self) -> None:
+        organization_id = self.organizations.create(
+            OrganizationCreate(
+                name="IGSA Srl",
+                project_key="ethics",
+                city="Barbarano Mossano",
+            )
+        )
+        contact_id = self.contacts.create(
+            ContactCreate(
+                organization_id=organization_id,
+                full_name="Valentina Ciccarella",
+                role="Responsabile del personale",
+            )
+        )
+
+        action_id = self.outreach_actions.create(
+            OutreachActionCreate(
+                organization_id=organization_id,
+                contact_id=contact_id,
+                action_type="draft_outreach",
+                channel="email",
+                status="draft",
+                summary="Spunto operativo per il rinnovo UNI/PdR 125",
+            )
+        )
+        message_id = self.messages.create(
+            MessageCreate(
+                outreach_action_id=action_id,
+                organization_id=organization_id,
+                contact_id=contact_id,
+                channel="email",
+                subject="Spunto operativo per il rinnovo UNI/PdR 125 di IGSA Srl",
+                body="Bozza outreach di prova.",
+                status="draft",
+            )
+        )
+
+        history = self.messages.list_by_organization(organization_id)
+
+        self.assertGreater(message_id, 0)
+        self.assertEqual(len(history), 1)
+        self.assertEqual(history[0]["action_type"], "draft_outreach")
+        self.assertEqual(history[0]["contact_full_name"], "Valentina Ciccarella")
+        self.assertEqual(history[0]["subject"], "Spunto operativo per il rinnovo UNI/PdR 125 di IGSA Srl")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,24 @@
+templates:
+  - filename: first_outreach.md
+    label: Prima mail consulenziale
+    description: Prima mail sobria per rinnovo PdR125, adatta a contatti HR, AD o canale generale in contesti aziendali strutturati.
+    tags:
+      - destinatario:hr
+      - destinatario:ceo
+      - destinatario:generale
+      - azienda:strutturata
+      - fase:rinnovo
+      - tono:consulenziale
+      - canale:email_fredda
+
+  - filename: first_outreach_direct.md
+    label: Prima mail diretta
+    description: Variante piu rapida e asciutta per interlocutori attuali che vanno al punto o per contesti piu veloci.
+    tags:
+      - destinatario:ceo
+      - destinatario:generale
+      - azienda:pmi
+      - azienda:strutturata
+      - fase:rinnovo
+      - tono:diretto
+      - canale:email_fredda

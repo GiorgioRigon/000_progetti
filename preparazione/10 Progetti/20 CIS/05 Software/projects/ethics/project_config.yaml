@@ -7,6 +7,7 @@ project:
 
 target:
   sector: consulenza certificazione, HR, compliance, ESG e sostenibilita
+  sector_reference: relevant_sectors.md
   geography: Italia
   lead_goal_min: 20
   lead_goal_max: 60

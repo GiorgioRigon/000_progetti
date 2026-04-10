@@ -92,6 +92,27 @@ Appunti e idee di sviluppo del progetto CIS, organizzati per argomento.
 
 - spazio riservato per note e decisioni su UX, navigazione e viste operative
 
+## WB4
+
+### Decisioni correnti
+
+- `WB4 Outreach Drafter` parte in versione minima dalla scheda `organization`
+- la bozza viene generata da `projects/<project_key>/email_templates/first_outreach.md`
+- la bozza resta sempre modificabile manualmente prima del salvataggio
+- il salvataggio minimo usa le tabelle gia esistenti: `outreach_actions` per l'azione e `messages` per subject/body della bozza
+- lo storico minimo delle bozze viene mostrato nella scheda `organization`, senza invio automatico e senza workflow commerciale avanzato
+- per migliorare la qualita restando nell'MVP, la bozza puo leggere anche dati gia presenti nel CIS: blocco note `[PdR125]`, qualificazione lead e configurazione di presentazione/outreach del progetto in `communication_style.yaml`
+- per mail a freddo `ethics`, la presentazione non va lasciata implicita: deve dichiarare chi scrive, da quale contesto arriva e quale problema operativo prova a semplificare, mantenendo tono sobrio e non promozionale
+- per `ethics` il template base di prima mail resta consulenziale e sobrio; una variante piu diretta viene salvata come `projects/ethics/email_templates/first_outreach_direct.md` per interlocutori piu rapidi o orientati al sodo
+
+### Evoluzione utile successiva
+
+- conviene preparare una gestione di template outreach multipli con metadati e tag, prima ancora di introdurre suggerimenti automatici o LLM
+- la prima fase puo restare manuale: selezione del template da UI aiutata da label, descrizione e tag come `destinatario`, `azienda`, `fase`, `tono`, `canale`
+- per `ethics` i template possono iniziare a essere indicizzati in `projects/ethics/email_templates/templates_index.yaml`, mantenendo i contenuti testuali nei file `.md`
+- una fase successiva puo aggiungere suggerimento automatico rule-based del template piu adatto usando dati gia presenti nel CIS, ad esempio ruolo del contatto, canale disponibile, segnali di qualificazione e struttura del lead
+- solo dopo aver consolidato template e regole semplici ha senso valutare una selezione o riscrittura assistita da LLM
+
 ## Data Model
 
 ### Idee future
@@ -112,6 +133,15 @@ Appunti e idee di sviluppo del progetto CIS, organizzati per argomento.
 - questa scelta rende il sistema trasferibile tra `melodema`, `ethics` e altri progetti commerciali
 - evita di introdurre troppo presto campi database che potrebbero rivelarsi troppo specifici o troppo rigidi
 - permette di capire con uso reale quali campi meritano in futuro di diventare strutturati
+
+### Gancio commerciale `ethics` per lead PdR125 in rinnovo
+
+- per lead gia certificati `UNI/PdR 125` con certificazione in scadenza, il gancio commerciale preferibile e il rinnovo triennale: aiutare l'azienda ad arrivare all'audit con un sistema documentale piu ordinato, aggiornato e facile da mantenere
+- evitare formule come `rifare la certificazione da zero`, perche il caso ordinario e un rinnovo triennale con sorveglianze annuali, non necessariamente una ripartenza completa
+- `E-docs` va proposto come punto di miglioramento operativo della gestione documentale e delle evidenze, non come sostituto dell'organismo di certificazione
+- se emergono insoddisfazioni su costo, supporto o gestione precedente, puo essere valutata anche una proposta di consulenza per il rinnovo e, in modo separato, formazione
+- questi lead possono essere utili come beta test e primi case study, ma senza allargare l'MVP: prima completare il flusso base con qualificazione, bozza modificabile, storico minimo e controllo umano
+- i settori rilevanti per questo gancio sono definiti in `projects/ethics/relevant_sectors.md`, da usare come riferimento operativo per compilare `organizations.sector`, note `[PdR125]` e qualificazione lead
 
 ## Multi-progetto
 

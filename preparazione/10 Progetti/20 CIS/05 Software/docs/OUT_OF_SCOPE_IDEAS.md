@@ -29,3 +29,4 @@ Parcheggio delle idee utili ma fuori perimetro MVP o fuori dal consolidamento mi
 
 - estendere il CIS verso invio messaggi, orchestrazione outreach o follow-up piu automatici
 - aggiungere logiche piu ricche di messaggi e azioni prima di aver consolidato il flusso minimo reale
+- aggiungere una modalita di modifica e pulizia dello storico outreach dalla scheda organization, cosi da poter eliminare bozze obsolete o tenere solo le versioni davvero utili quando il lavoro operativo diventera continuativo

@@ -7,3 +7,13 @@ messages:
     - partire dal bisogno operativo del cliente
     - evitare toni promozionali generici
     - valorizzare competenza, chiarezza e affidabilita
+
+outreach:
+  presentation_company: E-docs
+  presentation_name: Giorgio
+  presentation_role: sviluppo commerciale
+  presentation_summary: sistemi semplici per tenere piu ordinati documenti, evidenze e responsabilita nei percorsi certificativi
+  cta: Se puo essere utile, possiamo confrontarci 15 minuti per capire se questo approccio puo portare valore in vista del vostro rinnovo.
+  signature_name: Giorgio
+  signature_role: E-docs
+  signature_company: E-docs
