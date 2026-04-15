@@ -143,6 +143,16 @@ Appunti e idee di sviluppo del progetto CIS, organizzati per argomento.
 - questi lead possono essere utili come beta test e primi case study, ma senza allargare l'MVP: prima completare il flusso base con qualificazione, bozza modificabile, storico minimo e controllo umano
 - i settori rilevanti per questo gancio sono definiti in `projects/ethics/relevant_sectors.md`, da usare come riferimento operativo per compilare `organizations.sector`, note `[PdR125]` e qualificazione lead
 
+### Batch test Vicenza `PdR125`
+
+- per i mesi 2-3-4 del progetto `ethics` e utile lavorare anche su batch test territoriali piu ampi, ma con liste gia pulite prima dell'import diretto in `Organizations`
+- per il batch `Vicenza` la preselezione puo essere piu ampia del solo cluster costruzioni/verde: conviene mantenere un mix di settori per capire dove il gancio `E-docs` reagisce meglio
+- il primo batch test diretto puo essere costruito con una shortlist diversificata di circa `10-15` organization, basata su scadenza stimata `PdR125`, pulizia minima del dataset e motivazione sintetica salvata nelle note organization
+- questa selezione resta una preselezione euristica: settore reale, struttura del gruppo, sito ufficiale e canale di contatto vanno comunque verificati in `WB1`
+- per il primo gruppo operativo `Vicenza` la priorita corrente e: `EDILFLOOR` con `GEOSINTEX` come lead collegato, `MU.BRE.`, `CITY GREEN LIGHT`, `Clerprem`, `ITALIAN EXHIBITION GROUP`, `ACQUE DEL CHIAMPO`
+- la checklist operativa del prossimo passaggio `WB1` e salvata in `docs/ETHICS_WB1_PRIORITY_CHECKLIST.md`
+- il prompt riusabile per ricerca manuale di base `WB1` e salvato in `docs/WB1_MANUAL_BASE_RESEARCH_PROMPT.md`
+
 ## Multi-progetto
 
 ### Decisioni correnti
