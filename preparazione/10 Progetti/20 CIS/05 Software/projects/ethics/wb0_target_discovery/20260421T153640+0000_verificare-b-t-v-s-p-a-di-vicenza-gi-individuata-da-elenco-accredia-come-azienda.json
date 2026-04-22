@@ -1,0 +1,65 @@
+{
+  "project_key": "ethics",
+  "research_goal": "Verificare B.T.V. S.P.A. di Vicenza, gi\u00e0 individuata da elenco Accredia come azienda certificata UNI/PdR 125:2022, per capire se \u00e8 coerente con il progetto ethics / E-docs e se merita import operativo nel CIS.",
+  "project_context": "Progetto ethics. Target: aziende gi\u00e0 certificate UNI/PdR 125 con rinnovo triennale stimato nel 2026. Obiettivo operativo: verificare identit\u00e0 aziendale, settore reale, sito ufficiale, struttura societaria, evidenza PdR125 e primo fit\r\n  commerciale per E-docs. Il gancio potenziale \u00e8 la gestione ordinata di documenti, evidenze, responsabilit\u00e0 e KPI collegati alla PdR125, senza assumere problemi o bisogni non verificati.",
+  "territory_target": "Vicenza, Veneto, Italia",
+  "target_types": [
+    "azienda certificata UNI/PdR 125",
+    "azienda operativa da verificare",
+    "lead PdR125 con rinnovo stimato nel 2026",
+    "azienda con possibile carico documentale e sistemi di gestione"
+  ],
+  "selected_sources": [
+    "company_websites",
+    "certification_pages",
+    "business_directories",
+    "linkedin_and_social"
+  ],
+  "research_prompt": "Verifica manualmente B.T.V. S.P.A. di Vicenza, gi\u00e0 individuata da elenco Accredia Veneto UNI/PdR 125:2022.\r\n\r\n  Dati di partenza:\r\n  - Nome: B.T.V. S.P.A.\r\n  - Citt\u00e0: Vicenza\r\n  - Provincia: VI\r\n  - Certificazione UNI/PdR 125:2022 emessa il 2023-12-04 secondo fonte Accredia\r\n  - Scadenza stimata: 2026-12-04, assumendo validit\u00e0 triennale\r\n  - Ente certificatore: CERTITALIA S.r.l.\r\n\r\n  Obiettivo: confermare identit\u00e0 aziendale, sito ufficiale, settore operativo reale, struttura societaria, presenza o evidenza della certificazione UNI/PdR 125, eventuali sistemi di gestione/compliance, possibili segnali di fit per\r\n  ethics / E-docs e possibili canali di contatto successivi.\r\n\r\n  Distinguere sempre fatti verificati da inferenze commerciali. Non usare la scadenza stimata come fatto certo se non emerge da certificato o fonte ufficiale aggiornata.",
+  "prompt_variants": [
+    "\"B.T.V. S.P.A.\" Vicenza",
+    "\"BTV S.p.A.\" Vicenza",
+    "\"B.T.V. S.P.A.\" \"UNI/PdR 125\"",
+    "\"B.T.V. S.P.A.\" certificazione parit\u00e0 di genere",
+    "\"B.T.V. S.P.A.\" CERTITALIA",
+    "\"B.T.V. S.P.A.\" sito ufficiale",
+    "\"B.T.V. S.P.A.\" modello 231 codice etico"
+  ],
+  "inclusion_criteria": [
+    "identit\u00e0 aziendale confermata",
+    "sito ufficiale individuato",
+    "certificazione UNI/PdR 125 verificabile o coerente con fonte Accredia",
+    "settore operativo compatibile con possibile bisogno documentale",
+    "presenza di sistemi, compliance, processi, sedi, appalti, sicurezza, qualit\u00e0, ESG o altri segnali di carico documentale",
+    "possibile gancio E-docs su gestione ordinata di evidenze, responsabilit\u00e0 e KPI"
+  ],
+  "exclusion_criteria": [
+    "identit\u00e0 aziendale non confermata",
+    "sito ufficiale non individuabile",
+    "certificazione PdR125 non verificabile e nessuna fonte secondaria utile",
+    "azienda fuori target rispetto a ethics",
+    "nessun segnale minimo di bisogno documentale o organizzativo",
+    "azienda gi\u00e0 presente nel CIS come organization duplicata"
+  ],
+  "created_at": "2026-04-21T15:36:40+00:00",
+  "candidate_count": 1,
+  "candidates": [
+    {
+      "name": "B.T.V. S.P.A.",
+      "organization_type": "azienda certificata PdR125",
+      "city": "Vicenza",
+      "region": "Veneto",
+      "country": "Italia",
+      "website": null,
+      "notes": "Certificata UNI/PdR 125:2022 secondo fonte Accredia; certificazione emessa il 2023-12-04; scadenza stimata 2026-12-04 assumendo validit\u00e0 triennale; ente certificatore CERTITALIA S.r.l.; settore da verificare; classificazione preliminare ethics B: societ\u00e0 operativa ma settore non chiaro dal nome; gancio potenziale E-docs: rinnovo triennale PdR125, ordine documentale, evidenze e responsabilit\u00e0 audit",
+      "source": "wb0_manual",
+      "review_status": "importata",
+      "fit_label": "medio",
+      "website_confirmed": "da_verificare",
+      "qualification_notes": "Candidate da elenco Accredia Veneto UNI/PdR 125:2022. Certificazione emessa il 2023-12-04; scadenza stimata 2026-12-04 assumendo validit\u00e0 triennale; ente certificatore CERTITALIA S.r.l. Settore reale, sito ufficiale, struttura   societaria e canale di contatto da verificare. Prima classificazione ethics: banda B, societ\u00e0 operativa ma settore non chiaro dal nome. Non usare la scadenza stimata come fatto certo finch\u00e9 non verificata su certificato o fonte aggiornata.",
+      "final_decision": "importata",
+      "imported_organization_id": 37,
+      "imported_at": "2026-04-21T15:47:52+00:00"
+    }
+  ]
+}

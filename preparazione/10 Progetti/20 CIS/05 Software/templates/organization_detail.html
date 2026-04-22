@@ -50,6 +50,14 @@
         <dt>Telefono</dt>
         <dd>{{ organization.phone or "-" }}</dd>
       </div>
+      <div>
+        <dt>Dipendenti</dt>
+        <dd>{{ organization.employee_count if organization.employee_count is not none else "-" }}</dd>
+      </div>
+      <div class="detail-span">
+        <dt>Fonte</dt>
+        <dd>{{ organization.source or "-" }}</dd>
+      </div>
       <div class="detail-span">
         <dt>Sito web</dt>
         <dd>
@@ -104,6 +112,12 @@
             <input id="phone" name="phone" type="text" value="{{ organization.phone or '' }}">
           </div>
         </div>
+
+        <label for="employee_count">Dipendenti</label>
+        <input id="employee_count" name="employee_count" type="number" min="0" step="1" value="{{ organization.employee_count if organization.employee_count is not none else '' }}">
+
+        <label for="source">Fonte</label>
+        <input id="source" name="source" type="text" value="{{ organization.source or '' }}">
 
         <label for="notes">Note</label>
         <textarea id="notes" name="notes" rows="5">{{ organization.notes or '' }}</textarea>

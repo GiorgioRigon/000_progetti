@@ -79,6 +79,7 @@ class ManualFlowTests(unittest.TestCase):
                 "website": "https://www.santacecilia-bergamo.it",
                 "email": "direzione.artistica@santacecilia-bergamo.it",
                 "phone": "+39 035 123456",
+                "employee_count": "18",
                 "notes": "Interesse plausibile per rassegna autunnale e collaborazione locale.",
             },
             follow_redirects=True,
@@ -87,6 +88,7 @@ class ManualFlowTests(unittest.TestCase):
         self.assertEqual(update_response.status_code, 200)
         self.assertIn("Organization aggiornata correttamente.", update_page)
         self.assertIn("ente religioso e culturale", update_page)
+        self.assertIn("18", update_page)
         self.assertIn("direzione.artistica@santacecilia-bergamo.it", update_page)
 
         add_contact_response = self.client.post(

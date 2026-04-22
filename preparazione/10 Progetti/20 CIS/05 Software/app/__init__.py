@@ -428,6 +428,9 @@ def create_app(
                                 website=request.form.get("website", "").strip() or None,
                                 email=request.form.get("email", "").strip() or None,
                                 phone=request.form.get("phone", "").strip() or None,
+                                employee_count=_parse_optional_nonnegative_int(
+                                    request.form.get("employee_count", "")
+                                ),
                                 notes=request.form.get("notes", "").strip() or None,
                             )
                         )
@@ -566,6 +569,10 @@ def create_app(
                             website=request.form.get("website", "").strip() or None,
                             email=request.form.get("email", "").strip() or None,
                             phone=request.form.get("phone", "").strip() or None,
+                            employee_count=_parse_optional_nonnegative_int(
+                                request.form.get("employee_count", "")
+                            ),
+                            source=request.form.get("source", "").strip() or None,
                             notes=request.form.get("notes", "").strip() or None,
                         ),
                     )
@@ -704,6 +711,7 @@ def create_app(
                             website=website or organization["website"],
                             phone=general_phone or organization["phone"],
                             email=general_email or organization["email"],
+                            employee_count=organization["employee_count"],
                             source=organization["source"],
                             notes=merge_wb1_notes(
                                 existing_notes=organization["notes"],
@@ -765,6 +773,7 @@ def create_app(
                             website=organization["website"],
                             phone=organization["phone"],
                             email=organization["email"],
+                            employee_count=organization["employee_count"],
                             source=organization["source"],
                             notes=merge_qualification_notes(
                                 existing_notes=organization["notes"],
@@ -1117,6 +1126,15 @@ def _clean_form_value(value: object) -> str | None:
         return None
     cleaned = str(value).strip()
     return cleaned or None
+
+
+def _parse_optional_nonnegative_int(value: str) -> int | None:
+    cleaned = value.strip()
+    if not cleaned:
+        return None
+    if not cleaned.isdigit():
+        abort(400, description="Il numero dipendenti deve essere un intero non negativo.")
+    return int(cleaned)
 
 
 def _parse_optional_contact_id(contact_id_raw: str, organization_contacts: list[dict[str, object]]) -> int | None:

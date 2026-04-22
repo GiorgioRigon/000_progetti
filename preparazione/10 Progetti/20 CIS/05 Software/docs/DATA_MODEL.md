@@ -26,6 +26,10 @@ Rappresenta enti, aziende o organizzazioni target.
 
 Contiene i dati principali del lead a livello organizzazione.
 
+Campi operativi rilevanti:
+
+- `employee_count`: numero dipendenti, quando disponibile. Serve come dato semplice di qualificazione lead e non sostituisce le note qualitative su dimensione, gruppo o sedi.
+
 ### `contacts`
 
 Rappresenta persone associate a una organizzazione.

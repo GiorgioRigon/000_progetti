@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS organizations (
     website TEXT,
     phone TEXT,
     email TEXT,
+    employee_count INTEGER,
     source TEXT,
     notes TEXT,
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,

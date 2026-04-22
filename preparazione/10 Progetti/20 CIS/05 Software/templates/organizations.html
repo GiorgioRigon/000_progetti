@@ -83,6 +83,9 @@
           </div>
         </div>
 
+        <label for="employee_count">Dipendenti</label>
+        <input id="employee_count" name="employee_count" type="number" min="0" step="1">
+
         <label for="notes">Note</label>
         <textarea id="notes" name="notes" rows="4"></textarea>
 
@@ -94,7 +97,7 @@
       <h2>Import CSV</h2>
       <p class="muted">
         Colonna obbligatoria: <code>organization_name</code>. Le altre colonne utili
-        restano quelle gia supportate dall'import attuale.
+        includono anche <code>employee_count</code>.
       </p>
       <form class="stack" method="post" action="/organizations" enctype="multipart/form-data">
         <input type="hidden" name="form_type" value="csv_import">
@@ -119,6 +122,9 @@
                 {{ organization.organization_type or "Tipo non indicato" }}
                 {% if organization.city or organization.country %}
                   | {{ organization.city or "-" }}{% if organization.country %}, {{ organization.country }}{% endif %}
+                {% endif %}
+                {% if organization.employee_count is not none %}
+                  | {{ organization.employee_count }} dipendenti
                 {% endif %}
               </p>
             </div>

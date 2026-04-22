@@ -153,6 +153,13 @@ Appunti e idee di sviluppo del progetto CIS, organizzati per argomento.
 - la checklist operativa del prossimo passaggio `WB1` e salvata in `docs/ETHICS_WB1_PRIORITY_CHECKLIST.md`
 - il prompt riusabile per ricerca manuale di base `WB1` e salvato in `docs/WB1_MANUAL_BASE_RESEARCH_PROMPT.md`
 
+### Numero dipendenti
+
+- il numero dipendenti e un dato strutturato utile per qualificare i lead, soprattutto per distinguere PMI, aziende strutturate e gruppi complessi
+- il campo resta semplice (`organizations.employee_count`) e non cambia il perimetro MVP: serve come supporto alla qualificazione e alla scelta del template/outreach, non come scoring automatico
+- quando il dato e stimato o preso da fonti indirette, la fonte o l'incertezza va comunque annotata nelle note `WB1`
+- 2026-04-22: il campo `employee_count` e stato valorizzato per tutte le organization del progetto `ethics` gia importate; il dato va usato come filtro operativo per mini-batch e priorita, mantenendo nelle note organization il blocco `[Dipendenti]` con fonte e cautele quando il valore riguarda una societa specifica e non l'intero gruppo
+
 ## Multi-progetto
 
 ### Decisioni correnti

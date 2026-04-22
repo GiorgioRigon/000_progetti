@@ -33,6 +33,7 @@ class OrganizationCreate:
     website: str | None = None
     phone: str | None = None
     email: str | None = None
+    employee_count: int | None = None
     source: str | None = None
     notes: str | None = None
 
@@ -102,6 +103,11 @@ class Database:
                 "CREATE INDEX IF NOT EXISTS idx_organizations_project_key ON organizations(project_key)"
             )
             connection.commit()
+        if "employee_count" not in columns:
+            connection.execute(
+                "ALTER TABLE organizations ADD COLUMN employee_count INTEGER"
+            )
+            connection.commit()
 
 
 class CampaignRepository:
@@ -149,9 +155,9 @@ class OrganizationRepository:
         query = """
             INSERT INTO organizations (
                 project_key, campaign_id, name, organization_type, sector, city, region,
-                country, website, phone, email, source, notes
+                country, website, phone, email, employee_count, source, notes
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
         values = (
             organization.project_key,
@@ -165,6 +171,7 @@ class OrganizationRepository:
             organization.website,
             organization.phone,
             organization.email,
+            organization.employee_count,
             organization.source,
             organization.notes,
         )
@@ -194,6 +201,7 @@ class OrganizationRepository:
                 website = ?,
                 phone = ?,
                 email = ?,
+                employee_count = ?,
                 source = ?,
                 notes = ?,
                 updated_at = CURRENT_TIMESTAMP
@@ -211,6 +219,7 @@ class OrganizationRepository:
             organization.website,
             organization.phone,
             organization.email,
+            organization.employee_count,
             organization.source,
             organization.notes,
             organization_id,

@@ -27,6 +27,7 @@
               <th>Tipo</th>
               <th>Citta</th>
               <th>Paese</th>
+              <th>Dipendenti</th>
               <th>Email</th>
               <th>Telefono</th>
               <th>Fit</th>
@@ -45,6 +46,7 @@
                 <td>{{ row.organization.organization_type or "-" }}</td>
                 <td>{{ row.organization.city or "-" }}</td>
                 <td>{{ row.organization.country or "-" }}</td>
+                <td>{{ row.organization.employee_count if row.organization.employee_count is not none else "-" }}</td>
                 <td>{{ row.organization.email or "-" }}</td>
                 <td>{{ row.organization.phone or "-" }}</td>
                 <td>{{ row.qualification.fit_label or "-" }}</td>

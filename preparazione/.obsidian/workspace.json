@@ -4,67 +4,24 @@
     "type": "split",
     "children": [
       {
-        "id": "2ea4693d65446431",
+        "id": "1836e4f71325a179",
         "type": "tabs",
         "children": [
           {
-            "id": "01f569f6957b5722",
+            "id": "b3f5501bd6c6383f",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "10 Progetti/20 CIS/05 Software/docs/ETHICS_WB1_PRIORITY_CHECKLIST.md",
+                "file": "10 Progetti/20 CIS/05 Software/docs/ETHICS_PHASE_2_3_4_LEAD_SHORTLIST.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "ETHICS_WB1_PRIORITY_CHECKLIST"
-            }
-          },
-          {
-            "id": "7fc9524f70dd3b92",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "10 Progetti/20 CIS/05 Software/docs/ETHICS_WB1_PRIORITY_CHECKLIST.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "ETHICS_WB1_PRIORITY_CHECKLIST"
-            }
-          },
-          {
-            "id": "40f7dfa9fbd8ca1a",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "10 Progetti/20 CIS/05 Software/docs/WB1_MANUAL_BASE_RESEARCH_PROMPT.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "WB1_MANUAL_BASE_RESEARCH_PROMPT"
-            }
-          },
-          {
-            "id": "ec3d09ea1f2b4968",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "10 Progetti/20 CIS/05 Software/docs/ETHICS_VICENZA_PDR125_SELECTION.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "ETHICS_VICENZA_PDR125_SELECTION"
+              "title": "ETHICS_PHASE_2_3_4_LEAD_SHORTLIST"
             }
           }
-        ],
-        "currentTab": 3
+        ]
       }
     ],
     "direction": "vertical"
@@ -211,29 +168,31 @@
       "obsidian-git:Open Git source control": false
     }
   },
-  "active": "ec3d09ea1f2b4968",
+  "active": "b3f5501bd6c6383f",
   "lastOpenFiles": [
-    "260415 Lista Leads.md",
-    "10 Progetti/20 CIS/05 Software/docs/ETHICS_VICENZA_PDR125_SELECTION.md",
-    "10 Progetti/20 CIS/05 Software/docs/ETHICS_WB1_PRIORITY_CHECKLIST.md",
-    "260415 Prompt Base CityLightGreen.md",
-    "10 Progetti/20 CIS/05 Software/data/cis.sqlite3-journal",
-    "10 Progetti/20 CIS/05 Software/docs/WB1_MANUAL_BASE_RESEARCH_PROMPT.md",
+    "260422 Lista 2-3-4.md",
     "269415 MU.BRE. Costruzioni.md",
+    "260415 Lista Leads.md",
+    "10 Progetti/20 CIS/05 Software/docs/ETHICS_PHASE_2_3_4_LEAD_SHORTLIST.md",
+    "10 Progetti/20 CIS/05 Software/data/cis.sqlite3-journal",
+    "10 Progetti/20 CIS/05 Software/projects/ethics/wb0_target_discovery/20260422T070148+0000_verificare-un-mini-batch-di-aziende-della-provincia-di-vicenza-gi-certificate-un.json",
+    "accredia_vicenza_pdr125_pmi_probabili_giu_dic_2026_classificazione.csv",
+    "accredia_vicenza_pdr125_pmi_probabili_giu_dic_2026.csv",
+    "10 Progetti/20 CIS/05 Software/tests/__pycache__/test_manual_flow.cpython-310.pyc.134435962648192",
+    "10 Progetti/20 CIS/05 Software/app/__pycache__/data_access.cpython-310.pyc.134435948143888",
+    "10 Progetti/20 CIS/05 Software/app/__pycache__/csv_import.cpython-310.pyc.134435948143728",
+    "10 Progetti/20 CIS/05 Software/app/__pycache__/__init__.cpython-310.pyc.134435963456368",
+    "10 Progetti/20 CIS/05 Software/tests/__pycache__/test_data_access.cpython-310.pyc.134435964523552",
+    "lancio app web.md",
+    "10 Progetti/20 CIS/05 Software/app/__pycache__/__init__.cpython-310.pyc.136391876463792",
+    "10 Progetti/20 CIS/05 Software/docs/ETHICS_WB1_PRIORITY_CHECKLIST.md",
+    "10 Progetti/20 CIS/05 Software/docs/WB1_MANUAL_BASE_RESEARCH_PROMPT.md",
+    "10 Progetti/20 CIS/05 Software/docs/ETHICS_VICENZA_PDR125_SELECTION.md",
+    "260415 Prompt Base CityLightGreen.md",
     "10 Progetti/10 Progetti.md",
     "10 Progetti/20 CIS/00 CIS Home.md",
     "10 Progetti/20 CIS/05 Software/projects/ethics/relevant_sectors.md",
-    "lancio app web.md",
-    "cis_import_ethics_vicenza_pdr125_shortlist_test_mesi_2_3_4.csv",
-    "accredia_veneto_pdr125_2022_vicenza_classificazione_ethics.csv",
-    "cis_import_ethics_vicenza_pdr125_giu_dic_2026.csv",
-    "accredia_veneto_pdr125_2022_shortlist_wb0_ethics_giu_dic_2026_vicenza_clean.csv",
-    "accredia_veneto_pdr125_2022_shortlist_wb0_ethics_giu_dic_2026_vicenza.csv",
-    "10 Progetti/20 CIS/05 Software/projects/ethics/wb0_target_discovery/20260413T140257+0000_registrare-e-verificare-un-piccolo-gruppo-di-aziende-del-veneto-gia-certificate.json",
     "260413 Ricerca dati in accredia.md",
-    "accredia_veneto_pdr125_2022_shortlist_wb0_ethics_vicenza_settori_rilevanti.csv",
-    "accredia_veneto_pdr125_2022_shortlist_wb0_ethics_giu_dic_2026.csv",
-    "accredia_veneto_pdr125_2022_scadenza_ent12_2026_cis_preselect.csv",
     "260410  Miglioramento bozza email.md",
     "10 Progetti/20 CIS/05 Software/projects/ethics/email_templates/first_outreach_direct.md",
     "10 Progetti/20 CIS/05 Software/projects/ethics/email_templates/first_outreach.md",
@@ -246,8 +205,6 @@
     "10 Progetti/20 CIS/05 Software/docs/NEXT_STEP_OUTREACH_MINIMUM.md",
     "10 Progetti/20 CIS/05 Software/docs/STEP7_CHECKLIST_ETHICS_REMAINING_LEADS.md",
     "10 Progetti/20 CIS/05 Software/docs/OUT_OF_SCOPE_IDEAS.md",
-    "10 Progetti/20 CIS/04 Roadmap/05 Roadmap 2 settimane profili WB.md",
-    "260331_Prompt_ripresa_step6_ethics.md",
-    "260407 Ripresa su step6.md"
+    "10 Progetti/20 CIS/04 Roadmap/05 Roadmap 2 settimane profili WB.md"
   ]
 }

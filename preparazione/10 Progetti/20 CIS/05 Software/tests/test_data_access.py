@@ -91,6 +91,7 @@ class DataAccessCrudTests(unittest.TestCase):
                 project_key="melodema",
                 city="Parma",
                 website="https://example.org",
+                employee_count=42,
             )
         )
 
@@ -100,6 +101,7 @@ class DataAccessCrudTests(unittest.TestCase):
         self.assertEqual(organization["name"], "Teatro Comunale")
         self.assertEqual(organization["campaign_id"], campaign_id)
         self.assertEqual(organization["project_key"], "melodema")
+        self.assertEqual(organization["employee_count"], 42)
 
     def test_can_create_and_read_contact(self) -> None:
         organization_id = self.organizations.create(

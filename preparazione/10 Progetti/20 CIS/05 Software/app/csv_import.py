@@ -62,6 +62,7 @@ def import_leads_csv(
                 website=_clean(row.get("website")),
                 phone=_clean(row.get("organization_phone")),
                 email=_clean(row.get("organization_email")),
+                employee_count=_parse_optional_int(row.get("employee_count")),
                 source=_clean(row.get("source")) or "csv_import",
                 notes=_clean(row.get("organization_notes")),
             )
@@ -97,6 +98,17 @@ def _clean(value: str | None) -> str | None:
         return None
     cleaned = value.strip()
     return cleaned or None
+
+
+def _parse_optional_int(value: str | None) -> int | None:
+    cleaned = _clean(value)
+    if cleaned is None:
+        return None
+    try:
+        parsed = int(cleaned)
+    except ValueError:
+        return None
+    return parsed if parsed >= 0 else None
 
 
 def _detect_delimiter(csv_text: str) -> str:
