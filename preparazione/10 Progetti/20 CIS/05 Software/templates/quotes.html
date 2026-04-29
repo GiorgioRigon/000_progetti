@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}Preventivi - CIS{% endblock %}
+{% block body_class %}operational-page{% endblock %}
+
+{% block content %}
+  <section class="page-heading">
+    <div>
+      <p class="eyebrow">Preventivi</p>
+      <h1>{{ quotation_config.module_name or "Modulo Preventivi" }}</h1>
+      <p class="muted">Flusso MVP per creare schede dati e bozze preventivo collegate al progetto attivo.</p>
+    </div>
+  </section>
+
+  <section class="grid-two">
+    <section class="card">
+      <h2>Nuovo preventivo</h2>
+      <form class="stack" method="post" action="{{ url_for('quotes_list') }}">
+        <input type="hidden" name="form_type" value="create_quote">
+
+        <label for="organization_id">Organization</label>
+        <select id="organization_id" name="organization_id" required>
+          <option value="">Seleziona organization</option>
+          {% for organization in organizations %}
+            <option value="{{ organization.id }}" {% if selected_organization_id == organization.id %}selected{% endif %}>{{ organization.name }}</option>
+          {% endfor %}
+        </select>
+
+        <label for="title">Titolo preventivo</label>
+        <input id="title" name="title" type="text" required placeholder="Es. Rinnovo ordinato PdR125 2026">
+
+        <label for="intake_schema_key">Scheda dati preventivo</label>
+        <select id="intake_schema_key" name="intake_schema_key">
+          <option value="">Nessuna scheda specifica</option>
+          {% for schema in intake_schemas %}
+            <option value="{{ schema.key }}">{{ schema.label }}</option>
+          {% endfor %}
+        </select>
+
+        <label for="requested_by">Referente richiesta</label>
+        <input id="requested_by" name="requested_by" type="text" placeholder="Chi ha chiesto o istruito il preventivo">
+
+        <label for="scope_summary">Sintesi bisogno</label>
+        <textarea id="scope_summary" name="scope_summary" rows="3" placeholder="Riassunto operativo del bisogno del cliente"></textarea>
+
+        <div class="grid-two compact">
+          <div>
+            <label for="currency">Valuta</label>
+            <input id="currency" name="currency" type="text" value="{{ default_currency }}">
+          </div>
+          <div>
+            <label for="valid_until">Valido fino al</label>
+            <input id="valid_until" name="valid_until" type="date">
+          </div>
+        </div>
+
+        <label for="budget_notes">Note budget</label>
+        <textarea id="budget_notes" name="budget_notes" rows="2"></textarea>
+
+        <label for="timing_notes">Note tempi</label>
+        <textarea id="timing_notes" name="timing_notes" rows="2"></textarea>
+
+        <label for="assumptions">Assunzioni</label>
+        <textarea id="assumptions" name="assumptions" rows="2"></textarea>
+
+        <label for="internal_notes">Note interne</label>
+        <textarea id="internal_notes" name="internal_notes" rows="2"></textarea>
+
+        <label for="client_notes">Note cliente</label>
+        <textarea id="client_notes" name="client_notes" rows="2"></textarea>
+
+        <button type="submit">Crea preventivo</button>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Configurazione progetto</h2>
+      <dl class="detail-grid">
+        <div>
+          <dt>Valuta default</dt>
+          <dd>{{ quotation_config.default_currency or "EUR" }}</dd>
+        </div>
+        <div>
+          <dt>Validita default</dt>
+          <dd>{{ quotation_config.default_validity_days or "-" }} giorni</dd>
+        </div>
+        <div class="detail-span">
+          <dt>Config preventivi</dt>
+          <dd>{{ quotation_paths.quotation_config }}</dd>
+        </div>
+        <div class="detail-span">
+          <dt>Listino progetto</dt>
+          <dd>{{ quotation_paths.price_list }}</dd>
+        </div>
+        <div class="detail-span">
+          <dt>Schede disponibili</dt>
+          <dd>
+            {% if intake_schemas %}
+              {{ intake_schemas | map(attribute='label') | join(", ") }}
+            {% else %}
+              Nessuna scheda configurata.
+            {% endif %}
+          </dd>
+        </div>
+      </dl>
+    </section>
+  </section>
+
+  <section class="card">
+    <h2>Preventivi del progetto attivo</h2>
+    {% if quotes %}
+      <div class="stack">
+        {% for quote in quotes %}
+          <div class="list-row">
+            <div>
+              <strong><a href="{{ url_for('quote_detail', quote_id=quote.id) }}">{{ quote.title }}</a></strong>
+              <p class="muted">
+                {{ quote.organization_name or "Organization non disponibile" }}
+                | {{ quote.quote_number or "senza numero" }}
+                | {{ quote.status }}
+              </p>
+            </div>
+            <div>
+              <strong>{{ "%.2f"|format(quote.total_amount or 0) }} {{ quote.currency }}</strong>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="muted">Nessun preventivo salvato per il progetto attivo.</p>
+    {% endif %}
+  </section>
+{% endblock %}

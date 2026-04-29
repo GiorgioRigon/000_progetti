@@ -1,0 +1,16 @@
+price_list:
+  - code: MEL-CONC
+    title: Concerto
+    line_type: service
+    unit: evento
+    unit_price: 0
+  - code: MEL-LAB
+    title: Laboratorio
+    line_type: training
+    unit: sessione
+    unit_price: 0
+  - code: MEL-TRASF
+    title: Trasferta
+    line_type: travel
+    unit: forfait
+    unit_price: 0

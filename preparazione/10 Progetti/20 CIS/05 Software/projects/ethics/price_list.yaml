@@ -1,0 +1,45 @@
+price_list:
+  - code: ETH-CONS
+    title: Consulenza PdR125
+    line_type: service
+    unit: giornata
+    unit_price: 480
+    pricing_source: rule_based
+    description: Supporto consulenziale operativo sul percorso PdR125.
+    objective_quantities: avvio=4 | mantenimento=2 | rinnovo=3 | audit=2 | riordino documentale=2
+  - code: ETH-EDOCS
+    title: Setup E-Docs
+    line_type: setup
+    unit: una_tantum
+    unit_price: 850
+    pricing_source: rule_based
+    description: Configurazione iniziale ambiente E-Docs e struttura documentale di base.
+    trigger_field: edocs_interest
+    trigger_values: si | da valutare
+  - code: ETH-KPI
+    title: Impostazione KPI
+    line_type: service
+    unit: pacchetto
+    unit_price: 620
+    pricing_source: rule_based
+    description: Impostazione o riordino iniziale del quadro KPI.
+    trigger_field: ekpi_interest
+    trigger_values: si | da valutare
+  - code: ETH-TRAIN
+    title: Formazione utenti
+    line_type: training
+    unit: sessione
+    unit_price: 240
+    pricing_source: rule_based
+    description: Sessione operativa di formazione utenti.
+    keyword_trigger_field: requested_services
+    keyword_trigger_keywords: formazione | utenti | training
+  - code: ETH-UPLOAD
+    title: Caricamento iniziale documenti
+    line_type: setup
+    unit: pacchetto
+    unit_price: 380
+    pricing_source: rule_based
+    description: Supporto iniziale al caricamento documentale.
+    keyword_trigger_field: requested_services
+    keyword_trigger_keywords: caricamento | documenti | migrazione

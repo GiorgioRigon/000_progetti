@@ -1,0 +1,39 @@
+title: Preventivo Evento Corale
+sections:
+  - key: evento
+    label: Dati evento
+    fields:
+      - key: organization_name
+        label: Ente o organizzatore
+        type: text
+        required: true
+      - key: event_type
+        label: Tipo evento
+        type: text
+      - key: event_date
+        label: Data o periodo
+        type: text
+      - key: event_location
+        label: Luogo
+        type: text
+  - key: organico
+    label: Organico e repertorio
+    fields:
+      - key: choir_format
+        label: Organico richiesto
+        type: text
+      - key: repertoire_scope
+        label: Repertorio o taglio artistico
+        type: textarea
+        rows: 3
+  - key: logistica
+    label: Logistica e trasferte
+    fields:
+      - key: travel_needs
+        label: Trasferte previste
+        type: textarea
+        rows: 3
+      - key: technical_notes
+        label: Note tecniche o organizzative
+        type: textarea
+        rows: 3

@@ -11,7 +11,7 @@
   python .\run.py
 
   5. Apri il browser a questo indirizzo
-  http://127.0.0.1:5000
+ http://127.0.0.1:5000/
 
   Se PowerShell blocca l’attivazione, esegui prima questo comando e poi ripeti il passo 3:
 

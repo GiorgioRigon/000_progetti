@@ -1,0 +1,148 @@
+title: Preventivo PdR125 E-Docs E-KPI
+sections:
+  - key: anagrafica
+    label: Anagrafica cliente
+    fields:
+      - key: organization_name
+        label: Nome organizzazione
+        type: text
+        required: true
+      - key: legal_form
+        label: Forma giuridica
+        type: text
+      - key: website
+        label: Sito web
+        type: text
+      - key: main_contact
+        label: Referente principale
+        type: text
+      - key: decision_maker
+        label: Chi decide l'acquisto
+        type: text
+      - key: operational_users
+        label: Chi usera operativamente E-Docs o E-KPI
+        type: textarea
+        rows: 2
+  - key: perimetro
+    label: Perimetro organizzativo
+    fields:
+      - key: employee_count
+        label: Numero occupati o dipendenti
+        type: text
+      - key: pricing_band
+        label: Fascia listino applicabile
+        type: text
+      - key: organization_scope
+        label: Una o piu organizzazioni coinvolte
+        type: select
+        options: una sola organizzazione | piu organizzazioni
+      - key: organizations_involved
+        label: Numero organizzazioni coinvolte
+        type: text
+      - key: sites_involved
+        label: Numero sedi coinvolte
+        type: text
+      - key: scope_notes
+        label: Perimetro da includere nel preventivo
+        type: textarea
+        rows: 3
+  - key: pdr125
+    label: Stato PdR125
+    fields:
+      - key: pdr125_status
+        label: Stato attuale
+        type: select
+        required: true
+        options: non certificata | in certificazione | gia certificata
+      - key: certification_date
+        label: Data certificazione
+        type: text
+      - key: next_audit_date
+        label: Data prossimo audit
+        type: text
+      - key: next_renewal_date
+        label: Data prossimo rinnovo triennale
+        type: text
+      - key: certification_body
+        label: Organismo di certificazione
+        type: text
+      - key: pdr125_objective
+        label: Obiettivo principale
+        type: select
+        options: avvio | mantenimento | rinnovo | audit | riordino documentale
+      - key: audit_findings
+        label: Osservazioni o non conformita aperte
+        type: textarea
+        rows: 3
+  - key: documentazione
+    label: Documentazione e sistema di gestione
+    fields:
+      - key: document_storage
+        label: Dove si trova oggi la documentazione
+        type: select
+        options: cartelle | cloud | gestionale | email | altro
+      - key: document_order
+        label: Documentazione ordinata o dispersa
+        type: select
+        options: ordinata | parzialmente ordinata | dispersa
+      - key: document_volume
+        label: Numero indicativo documenti da caricare
+        type: text
+      - key: procedures_status
+        label: Procedure, moduli e registrazioni aggiornate
+        type: text
+      - key: management_system_notes
+        label: Note sul sistema di gestione
+        type: textarea
+        rows: 4
+  - key: kpi
+    label: KPI e rilevazioni
+    fields:
+      - key: kpi_defined
+        label: KPI gia definiti
+        type: select
+        options: si | no | da chiarire
+      - key: kpi_count
+        label: Numero indicativo KPI da monitorare
+        type: text
+      - key: monitoring_frequency
+        label: Frequenza rilevazioni
+        type: text
+      - key: kpi_owner
+        label: Chi raccoglie oggi i dati KPI
+        type: text
+      - key: kpi_notes
+        label: Serve impostare o riordinare i KPI
+        type: textarea
+        rows: 3
+  - key: servizi
+    label: Servizi richiesti
+    fields:
+      - key: edocs_interest
+        label: Interesse per E-Docs
+        type: select
+        options: si | no | da valutare
+      - key: ekpi_interest
+        label: Interesse per E-KPI
+        type: select
+        options: si | no | da valutare
+      - key: expected_users
+        label: Numero utenti previsti
+        type: text
+      - key: requested_services
+        label: Servizi richiesti
+        type: textarea
+        rows: 4
+        help: Separare se possibile consulenza, setup ambiente, caricamento documenti, formazione, supporto iniziale.
+      - key: urgency
+        label: Urgenza dichiarata dal cliente
+        type: select
+        options: bassa | media | alta
+      - key: budget_notes
+        label: Budget indicativo o vincoli economici
+        type: textarea
+        rows: 3
+      - key: timing_notes
+        label: Scadenze e vincoli temporali
+        type: textarea
+        rows: 3

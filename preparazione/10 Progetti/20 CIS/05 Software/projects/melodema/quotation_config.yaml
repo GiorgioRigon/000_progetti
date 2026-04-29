@@ -1,0 +1,3 @@
+module_name: Melodema Preventivi
+default_currency: EUR
+default_validity_days: 20

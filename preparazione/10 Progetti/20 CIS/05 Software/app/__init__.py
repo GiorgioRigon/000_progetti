@@ -8,6 +8,15 @@ from werkzeug.exceptions import HTTPException
 
 from app.csv_import import ImportResult, import_leads_csv
 from app.data_access import (
+    QuoteCreate,
+    QuoteIntakeCreate,
+    QuoteIntakeRepository,
+    QuoteLineItemCreate,
+    QuoteLineItemRepository,
+    QuoteRepository,
+    QuoteVersionCreate,
+    QuoteVersionRepository,
+    build_quote_snapshot,
     ContactCreate,
     ContactRepository,
     Database,
@@ -28,6 +37,17 @@ from app.outreach_drafter import (
     build_outreach_draft,
     list_outreach_templates,
     suggest_outreach_template,
+)
+from app.quotations import (
+    build_intake_initial_data,
+    build_suggested_line_items,
+    extract_intake_submission,
+    list_intake_schemas,
+    load_intake_schema,
+    load_price_list,
+    load_quotation_config,
+    quote_config_paths,
+    resolve_default_intake_schema_key,
 )
 from app.project_registry import list_projects
 from app.workbot_profiles import load_workbot_profile
@@ -77,6 +97,10 @@ def create_app(
     contacts = ContactRepository(database)
     outreach_actions = OutreachActionRepository(database)
     messages = MessageRepository(database)
+    quote_intakes = QuoteIntakeRepository(database)
+    quotes = QuoteRepository(database)
+    quote_line_items = QuoteLineItemRepository(database)
+    quote_versions = QuoteVersionRepository(database)
     app.logger.info("CIS app initialized", extra={"db_path": str(database.db_path)})
 
     def get_active_project_key() -> str:
@@ -543,11 +567,355 @@ def create_app(
             total_organizations=len(organizations_for_project),
         )
 
+    @app.route("/quotes", methods=["GET", "POST"])
+    def quotes_list() -> str:
+        active_project_key = get_active_project_key()
+        project_organizations = organizations.list_by_project(active_project_key)
+        organization_id_filter_raw = request.args.get("organization_id", "").strip()
+        selected_organization_id = (
+            int(organization_id_filter_raw) if organization_id_filter_raw.isdigit() else None
+        )
+
+        if request.method == "POST":
+            form_type = request.form.get("form_type", "create_quote")
+            if form_type == "create_quote":
+                organization_id_raw = request.form.get("organization_id", "").strip()
+                title = request.form.get("title", "").strip()
+                if not organization_id_raw.isdigit():
+                    abort(400, description="Seleziona una organization valida per il preventivo.")
+                if not title:
+                    abort(400, description="Il titolo del preventivo e obbligatorio.")
+
+                organization_id = int(organization_id_raw)
+                organization = organizations.get(organization_id)
+                if organization is None or organization.get("project_key") != active_project_key:
+                    abort(404)
+
+                intake_data = {
+                    "requested_by": request.form.get("requested_by", "").strip(),
+                    "scope_summary": request.form.get("scope_summary", "").strip(),
+                    "budget_notes": request.form.get("budget_notes", "").strip(),
+                    "timing_notes": request.form.get("timing_notes", "").strip(),
+                }
+                intake_id = quote_intakes.create(
+                    QuoteIntakeCreate(
+                        project_key=active_project_key,
+                        organization_id=organization_id,
+                        title=title,
+                        status="ready_for_quote",
+                        intake_schema_key=request.form.get("intake_schema_key", "").strip() or None,
+                        intake_data=intake_data,
+                        summary=request.form.get("scope_summary", "").strip() or None,
+                    )
+                )
+                quote_id = quotes.create(
+                    QuoteCreate(
+                        project_key=active_project_key,
+                        organization_id=organization_id,
+                        quote_intake_id=intake_id,
+                        title=title,
+                        quote_number=_build_quote_number(active_project_key),
+                        status="draft",
+                        currency=request.form.get("currency", "").strip() or "EUR",
+                        valid_until=request.form.get("valid_until", "").strip() or None,
+                        version_label="v1",
+                        assumptions=request.form.get("assumptions", "").strip() or None,
+                        internal_notes=request.form.get("internal_notes", "").strip() or None,
+                        client_notes=request.form.get("client_notes", "").strip() or None,
+                    )
+                )
+                quote = quotes.get(quote_id)
+                intake = quote_intakes.get(intake_id)
+                quote_versions.create(
+                    QuoteVersionCreate(
+                        quote_id=quote_id,
+                        version_label="v1",
+                        snapshot=build_quote_snapshot(quote or {}, intake, []),
+                    )
+                )
+                flash("Preventivo creato correttamente.", "success")
+                return redirect(url_for("quote_detail", quote_id=quote_id))
+
+        project_quotes = quotes.list_by_project(active_project_key)
+        if selected_organization_id is not None:
+            project_quotes = [
+                quote for quote in project_quotes if int(quote["organization_id"]) == selected_organization_id
+            ]
+
+        quotation_config = load_quotation_config(active_project_key, app.config["PROJECTS_ROOT"])
+        default_currency = quotation_config.get("default_currency", "EUR")
+
+        return render_template(
+            "quotes.html",
+            quotes=project_quotes,
+            organizations=project_organizations,
+            selected_organization_id=selected_organization_id,
+            intake_schemas=list_intake_schemas(active_project_key, app.config["PROJECTS_ROOT"]),
+            quotation_config=quotation_config,
+            quotation_paths=quote_config_paths(active_project_key, app.config["PROJECTS_ROOT"]),
+            default_currency=default_currency,
+        )
+
+    @app.post("/organizations/<int:organization_id>/quotes/new")
+    def create_quote_from_organization(organization_id: int) -> str:
+        organization = organizations.get(organization_id)
+        if organization is None:
+            abort(404)
+
+        active_project_key = get_active_project_key()
+        if organization.get("project_key") != active_project_key:
+            abort(404)
+
+        intake_schema_key = resolve_default_intake_schema_key(
+            active_project_key,
+            app.config["PROJECTS_ROOT"],
+        )
+        organization_name = str(organization.get("name") or "Organization").strip()
+        quote_title = f"Preventivo {organization_name}"
+        intake_data = {
+            "organization_name": organization_name,
+        }
+        intake_id = quote_intakes.create(
+            QuoteIntakeCreate(
+                project_key=active_project_key,
+                organization_id=organization_id,
+                title=quote_title,
+                status="draft",
+                intake_schema_key=intake_schema_key,
+                intake_data=intake_data,
+            )
+        )
+        quote_id = quotes.create(
+            QuoteCreate(
+                project_key=active_project_key,
+                organization_id=organization_id,
+                quote_intake_id=intake_id,
+                title=quote_title,
+                quote_number=_build_quote_number(active_project_key),
+                status="draft",
+                currency=load_quotation_config(
+                    active_project_key,
+                    app.config["PROJECTS_ROOT"],
+                ).get("default_currency", "EUR"),
+                version_label="v1",
+            )
+        )
+        quote = quotes.get(quote_id)
+        intake = quote_intakes.get(intake_id)
+        quote_versions.create(
+            QuoteVersionCreate(
+                quote_id=quote_id,
+                version_label="v1",
+                snapshot=build_quote_snapshot(quote or {}, intake, []),
+            )
+        )
+        flash("Preventivo creato. Completa ora la scheda dati preventivo.", "success")
+        return redirect(f"{url_for('quote_detail', quote_id=quote_id)}#scheda-dati")
+
+    @app.route("/quotes/<int:quote_id>", methods=["GET", "POST"])
+    def quote_detail(quote_id: int) -> str:
+        quote = quotes.get(quote_id)
+        if quote is None:
+            abort(404)
+        if quote.get("project_key") != get_active_project_key():
+            abort(404)
+        organization = organizations.get(int(quote["organization_id"])) if quote else None
+        intake = (
+            quote_intakes.get(int(quote["quote_intake_id"]))
+            if quote and quote.get("quote_intake_id")
+            else None
+        )
+        intake_schema_key = str((intake or {}).get("intake_schema_key") or "").strip()
+        intake_schema = (
+            load_intake_schema(
+                str(quote.get("project_key") or get_active_project_key()),
+                app.config["PROJECTS_ROOT"],
+                intake_schema_key,
+            )
+            if intake_schema_key
+            else {"key": "", "title": "", "sections": []}
+        )
+        intake_form_data = build_intake_initial_data(
+            intake_schema,
+            organization,
+            (intake or {}).get("intake_data"),
+        )
+
+        if request.method == "POST":
+            form_type = request.form.get("form_type", "line_item")
+            if form_type == "intake":
+                if intake is None:
+                    abort(404)
+                intake_payload, intake_errors = extract_intake_submission(intake_schema, request.form)
+                if intake_errors:
+                    for error_message in intake_errors:
+                        flash(error_message, "error")
+                    intake_form_data = intake_payload
+                else:
+                    intake_status = request.form.get("intake_status", "").strip() or str(intake.get("status") or "draft")
+                    intake_summary = request.form.get("intake_summary", "").strip() or None
+                    quote_intakes.update(
+                        int(intake["id"]),
+                        status=intake_status,
+                        intake_schema_key=intake_schema_key or None,
+                        intake_data=intake_payload,
+                        summary=intake_summary,
+                    )
+                    refreshed_quote = quotes.get(quote_id)
+                    refreshed_intake = quote_intakes.get(int(intake["id"]))
+                    quote_versions.create(
+                        QuoteVersionCreate(
+                            quote_id=quote_id,
+                            version_label=str((refreshed_quote or {}).get("version_label") or "v1"),
+                            snapshot=build_quote_snapshot(
+                                refreshed_quote or {},
+                                refreshed_intake,
+                                quote_line_items.list_by_quote(quote_id),
+                            ),
+                        )
+                    )
+                    flash("Scheda preventivo aggiornata correttamente.", "success")
+                    return redirect(url_for("quote_detail", quote_id=quote_id))
+            elif form_type == "generate_from_intake":
+                if intake is None:
+                    abort(404)
+                suggested_line_items = build_suggested_line_items(
+                    str(quote.get("project_key") or get_active_project_key()),
+                    app.config["PROJECTS_ROOT"],
+                    intake.get("intake_data"),
+                )
+                existing_line_items = quote_line_items.list_by_quote(quote_id)
+                existing_codes = {
+                    str(item.get("code") or "").strip()
+                    for item in existing_line_items
+                    if str(item.get("code") or "").strip()
+                }
+                next_sort_order = len(existing_line_items)
+                created_count = 0
+                for suggested_item in suggested_line_items:
+                    if str(suggested_item.get("code") or "") in existing_codes:
+                        continue
+                    quote_line_items.create(
+                        QuoteLineItemCreate(
+                            quote_id=quote_id,
+                            line_type=str(suggested_item.get("line_type") or "custom"),
+                            code=str(suggested_item.get("code") or "").strip() or None,
+                            title=str(suggested_item.get("title") or "Voce da listino"),
+                            description=str(suggested_item.get("description") or "").strip() or None,
+                            quantity=float(suggested_item.get("quantity") or 1),
+                            unit=str(suggested_item.get("unit") or "").strip() or None,
+                            unit_price=float(suggested_item.get("unit_price") or 0),
+                            sort_order=next_sort_order,
+                            pricing_source=str(suggested_item.get("pricing_source") or "rule_based"),
+                        )
+                    )
+                    next_sort_order += 1
+                    created_count += 1
+                _refresh_quote_totals(
+                    quote_id=quote_id,
+                    quotes=quotes,
+                    quote_line_items=quote_line_items,
+                )
+                updated_quote = quotes.get(quote_id)
+                updated_intake = quote_intakes.get(int(intake["id"]))
+                quote_versions.create(
+                    QuoteVersionCreate(
+                        quote_id=quote_id,
+                        version_label=str((updated_quote or {}).get("version_label") or "v1"),
+                        snapshot=build_quote_snapshot(
+                            updated_quote or {},
+                            updated_intake,
+                            quote_line_items.list_by_quote(quote_id),
+                        ),
+                    )
+                )
+                if created_count == 0:
+                    flash("Nessuna nuova riga suggerita dal listino oppure righe gia presenti.", "warning")
+                else:
+                    flash(f"Generate {created_count} righe suggerite dal listino.", "success")
+                return redirect(url_for("quote_detail", quote_id=quote_id))
+            elif form_type == "line_item":
+                title = request.form.get("title", "").strip()
+                if not title:
+                    abort(400, description="Il titolo della riga preventivo e obbligatorio.")
+                quantity = _parse_required_positive_float(
+                    request.form.get("quantity", ""),
+                    "La quantita deve essere un numero positivo.",
+                )
+                unit_price = _parse_required_nonnegative_float(
+                    request.form.get("unit_price", ""),
+                    "Il prezzo unitario deve essere un numero non negativo.",
+                )
+                quote_line_items.create(
+                    QuoteLineItemCreate(
+                        quote_id=quote_id,
+                        line_type=request.form.get("line_type", "").strip() or "custom",
+                        code=request.form.get("code", "").strip() or None,
+                        title=title,
+                        description=request.form.get("description", "").strip() or None,
+                        quantity=quantity,
+                        unit=request.form.get("unit", "").strip() or None,
+                        unit_price=unit_price,
+                        sort_order=_parse_optional_nonnegative_int(request.form.get("sort_order", "")) or 0,
+                        pricing_source=request.form.get("pricing_source", "").strip() or "manual",
+                    )
+                )
+                _refresh_quote_totals(
+                    quote_id=quote_id,
+                    quotes=quotes,
+                    quote_line_items=quote_line_items,
+                )
+                updated_quote = quotes.get(quote_id)
+                intake = (
+                    quote_intakes.get(int(updated_quote["quote_intake_id"]))
+                    if updated_quote and updated_quote.get("quote_intake_id")
+                    else None
+                )
+                quote_versions.create(
+                    QuoteVersionCreate(
+                        quote_id=quote_id,
+                        version_label=str(updated_quote.get("version_label") or "v1"),
+                        snapshot=build_quote_snapshot(
+                            updated_quote or {},
+                            intake,
+                            quote_line_items.list_by_quote(quote_id),
+                        ),
+                    )
+                )
+                flash("Riga preventivo aggiunta correttamente.", "success")
+                return redirect(url_for("quote_detail", quote_id=quote_id))
+
+        quote = quotes.get(quote_id)
+        intake = (
+            quote_intakes.get(int(quote["quote_intake_id"]))
+            if quote and quote.get("quote_intake_id")
+            else None
+        )
+        line_items = quote_line_items.list_by_quote(quote_id)
+        versions = quote_versions.list_by_quote(quote_id)
+        suggested_line_items = build_suggested_line_items(
+            str(quote.get("project_key") or get_active_project_key()),
+            app.config["PROJECTS_ROOT"],
+            (intake or {}).get("intake_data"),
+        )
+        return render_template(
+            "quote_detail.html",
+            quote=quote,
+            organization=organization,
+            intake=intake,
+            intake_schema=intake_schema,
+            intake_form_data=intake_form_data,
+            line_items=line_items,
+            suggested_line_items=suggested_line_items,
+            versions=versions,
+        )
+
     @app.route("/organizations/<int:organization_id>", methods=["GET", "POST"])
     def organization_detail(organization_id: int) -> str:
         organization = organizations.get(organization_id)
         if organization is None:
             abort(404)
+        organization_quotes = quotes.list_by_organization(organization_id)
         organization_contacts = contacts.list_by_organization(organization_id)
         organization_messages = messages.list_by_organization(organization_id)
         available_outreach_templates = list_outreach_templates(
@@ -948,6 +1316,7 @@ def create_app(
                 return render_template(
                     "organization_detail.html",
                     organization=organization,
+                    organization_quotes=quotes.list_by_organization(organization_id),
                     contacts=organization_contacts,
                     available_outreach_templates=available_outreach_templates,
                     suggested_template=suggested_template,
@@ -1036,6 +1405,7 @@ def create_app(
         return render_template(
             "organization_detail.html",
             organization=organization,
+            organization_quotes=organization_quotes,
             contacts=organization_contacts,
             available_outreach_templates=available_outreach_templates,
             suggested_template=suggested_template,
@@ -1157,6 +1527,26 @@ def _parse_optional_nonnegative_int(value: str) -> int | None:
     return int(cleaned)
 
 
+def _parse_required_positive_float(value: str, error_message: str) -> float:
+    try:
+        parsed = float(value.strip())
+    except ValueError:
+        abort(400, description=error_message)
+    if parsed <= 0:
+        abort(400, description=error_message)
+    return parsed
+
+
+def _parse_required_nonnegative_float(value: str, error_message: str) -> float:
+    try:
+        parsed = float(value.strip())
+    except ValueError:
+        abort(400, description=error_message)
+    if parsed < 0:
+        abort(400, description=error_message)
+    return parsed
+
+
 def _parse_optional_contact_id(contact_id_raw: str, organization_contacts: list[dict[str, object]]) -> int | None:
     cleaned = contact_id_raw.strip()
     if not cleaned:
@@ -1201,3 +1591,28 @@ def _find_outreach_template_metadata(
         if template.get("name") == template_name:
             return template
     return {"name": template_name, "label": template_name, "description": "", "tags": []}
+
+
+def _build_quote_number(project_key: str) -> str:
+    return f"{project_key.upper()}-DRAFT"
+
+
+def _refresh_quote_totals(
+    quote_id: int,
+    quotes: QuoteRepository,
+    quote_line_items: QuoteLineItemRepository,
+) -> None:
+    quote = quotes.get(quote_id)
+    if quote is None:
+        return
+
+    line_items = quote_line_items.list_by_quote(quote_id)
+    subtotal_amount = sum(float(item.get("line_total") or 0) for item in line_items)
+    discount_amount = float(quote.get("discount_amount") or 0)
+    total_amount = subtotal_amount - discount_amount
+    quotes.update_amounts(
+        quote_id=quote_id,
+        subtotal_amount=subtotal_amount,
+        discount_amount=discount_amount,
+        total_amount=total_amount,
+    )

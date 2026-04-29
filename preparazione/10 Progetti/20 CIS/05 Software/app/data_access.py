@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import sqlite3
 from dataclasses import dataclass
+import json
 from pathlib import Path
 from typing import Any
 
@@ -76,6 +77,58 @@ class MessageCreate:
     status: str = "draft"
 
 
+@dataclass(slots=True)
+class QuoteIntakeCreate:
+    project_key: str
+    organization_id: int
+    title: str
+    status: str = "draft"
+    intake_schema_key: str | None = None
+    intake_data: dict[str, Any] | None = None
+    summary: str | None = None
+
+
+@dataclass(slots=True)
+class QuoteCreate:
+    project_key: str
+    organization_id: int
+    title: str
+    quote_intake_id: int | None = None
+    quote_number: str | None = None
+    status: str = "draft"
+    currency: str = "EUR"
+    subtotal_amount: float = 0.0
+    discount_amount: float = 0.0
+    total_amount: float = 0.0
+    valid_until: str | None = None
+    version_label: str | None = None
+    assumptions: str | None = None
+    internal_notes: str | None = None
+    client_notes: str | None = None
+
+
+@dataclass(slots=True)
+class QuoteLineItemCreate:
+    quote_id: int
+    line_type: str
+    title: str
+    quantity: float
+    unit_price: float
+    code: str | None = None
+    description: str | None = None
+    unit: str | None = None
+    line_total: float | None = None
+    sort_order: int = 0
+    pricing_source: str | None = None
+
+
+@dataclass(slots=True)
+class QuoteVersionCreate:
+    quote_id: int
+    version_label: str
+    snapshot: dict[str, Any]
+
+
 class Database:
     def __init__(self, db_path: Path | str = DEFAULT_DB_PATH) -> None:
         self.db_path = Path(db_path)
@@ -88,6 +141,9 @@ class Database:
         return connection
 
     def _ensure_schema(self, connection: sqlite3.Connection) -> None:
+        schema_sql = (BASE_DIR / "data" / "schema.sql").read_text(encoding="utf-8")
+        connection.executescript(schema_sql)
+
         columns = {
             row["name"]
             for row in connection.execute("PRAGMA table_info(organizations)").fetchall()
@@ -408,3 +464,269 @@ class MessageRepository:
         with self.database.connect() as connection:
             rows = connection.execute(query, (organization_id,)).fetchall()
         return [dict(row) for row in rows]
+
+
+class QuoteIntakeRepository:
+    def __init__(self, database: Database) -> None:
+        self.database = database
+
+    def create(self, intake: QuoteIntakeCreate) -> int:
+        query = """
+            INSERT INTO quote_intakes (
+                project_key, organization_id, title, status, intake_schema_key,
+                intake_data_json, summary
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """
+        values = (
+            intake.project_key,
+            intake.organization_id,
+            intake.title,
+            intake.status,
+            intake.intake_schema_key,
+            json.dumps(intake.intake_data or {}, ensure_ascii=True),
+            intake.summary,
+        )
+        with self.database.connect() as connection:
+            cursor = connection.execute(query, values)
+            connection.commit()
+            return int(cursor.lastrowid)
+
+    def get(self, intake_id: int) -> dict[str, Any] | None:
+        query = "SELECT * FROM quote_intakes WHERE id = ?"
+        with self.database.connect() as connection:
+            row = connection.execute(query, (intake_id,)).fetchone()
+        if row is None:
+            return None
+        payload = dict(row)
+        payload["intake_data"] = _load_json_object(payload.get("intake_data_json"))
+        return payload
+
+    def update(
+        self,
+        intake_id: int,
+        *,
+        status: str,
+        intake_schema_key: str | None,
+        intake_data: dict[str, Any],
+        summary: str | None,
+    ) -> None:
+        query = """
+            UPDATE quote_intakes
+            SET
+                status = ?,
+                intake_schema_key = ?,
+                intake_data_json = ?,
+                summary = ?,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+        """
+        with self.database.connect() as connection:
+            connection.execute(
+                query,
+                (
+                    status,
+                    intake_schema_key,
+                    json.dumps(intake_data, ensure_ascii=True),
+                    summary,
+                    intake_id,
+                ),
+            )
+            connection.commit()
+
+
+class QuoteRepository:
+    def __init__(self, database: Database) -> None:
+        self.database = database
+
+    def create(self, quote: QuoteCreate) -> int:
+        query = """
+            INSERT INTO quotes (
+                project_key, organization_id, quote_intake_id, quote_number, title, status,
+                currency, subtotal_amount, discount_amount, total_amount, valid_until,
+                version_label, assumptions, internal_notes, client_notes
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """
+        values = (
+            quote.project_key,
+            quote.organization_id,
+            quote.quote_intake_id,
+            quote.quote_number,
+            quote.title,
+            quote.status,
+            quote.currency,
+            quote.subtotal_amount,
+            quote.discount_amount,
+            quote.total_amount,
+            quote.valid_until,
+            quote.version_label,
+            quote.assumptions,
+            quote.internal_notes,
+            quote.client_notes,
+        )
+        with self.database.connect() as connection:
+            cursor = connection.execute(query, values)
+            connection.commit()
+            return int(cursor.lastrowid)
+
+    def get(self, quote_id: int) -> dict[str, Any] | None:
+        query = """
+            SELECT quotes.*, organizations.name AS organization_name
+            FROM quotes
+            LEFT JOIN organizations ON organizations.id = quotes.organization_id
+            WHERE quotes.id = ?
+        """
+        with self.database.connect() as connection:
+            row = connection.execute(query, (quote_id,)).fetchone()
+        return dict(row) if row else None
+
+    def list_by_project(self, project_key: str) -> list[dict[str, Any]]:
+        query = """
+            SELECT quotes.*, organizations.name AS organization_name
+            FROM quotes
+            LEFT JOIN organizations ON organizations.id = quotes.organization_id
+            WHERE quotes.project_key = ?
+            ORDER BY quotes.created_at DESC, quotes.id DESC
+        """
+        with self.database.connect() as connection:
+            rows = connection.execute(query, (project_key,)).fetchall()
+        return [dict(row) for row in rows]
+
+    def list_by_organization(self, organization_id: int) -> list[dict[str, Any]]:
+        query = """
+            SELECT * FROM quotes
+            WHERE organization_id = ?
+            ORDER BY created_at DESC, id DESC
+        """
+        with self.database.connect() as connection:
+            rows = connection.execute(query, (organization_id,)).fetchall()
+        return [dict(row) for row in rows]
+
+    def update_amounts(
+        self,
+        quote_id: int,
+        subtotal_amount: float,
+        discount_amount: float,
+        total_amount: float,
+    ) -> None:
+        query = """
+            UPDATE quotes
+            SET
+                subtotal_amount = ?,
+                discount_amount = ?,
+                total_amount = ?,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+        """
+        with self.database.connect() as connection:
+            connection.execute(
+                query,
+                (subtotal_amount, discount_amount, total_amount, quote_id),
+            )
+            connection.commit()
+
+
+class QuoteLineItemRepository:
+    def __init__(self, database: Database) -> None:
+        self.database = database
+
+    def create(self, line_item: QuoteLineItemCreate) -> int:
+        query = """
+            INSERT INTO quote_line_items (
+                quote_id, line_type, code, title, description, quantity, unit,
+                unit_price, line_total, sort_order, pricing_source
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """
+        computed_line_total = (
+            line_item.line_total
+            if line_item.line_total is not None
+            else float(line_item.quantity) * float(line_item.unit_price)
+        )
+        values = (
+            line_item.quote_id,
+            line_item.line_type,
+            line_item.code,
+            line_item.title,
+            line_item.description,
+            line_item.quantity,
+            line_item.unit,
+            line_item.unit_price,
+            computed_line_total,
+            line_item.sort_order,
+            line_item.pricing_source,
+        )
+        with self.database.connect() as connection:
+            cursor = connection.execute(query, values)
+            connection.commit()
+            return int(cursor.lastrowid)
+
+    def list_by_quote(self, quote_id: int) -> list[dict[str, Any]]:
+        query = """
+            SELECT * FROM quote_line_items
+            WHERE quote_id = ?
+            ORDER BY sort_order ASC, id ASC
+        """
+        with self.database.connect() as connection:
+            rows = connection.execute(query, (quote_id,)).fetchall()
+        return [dict(row) for row in rows]
+
+
+class QuoteVersionRepository:
+    def __init__(self, database: Database) -> None:
+        self.database = database
+
+    def create(self, version: QuoteVersionCreate) -> int:
+        query = """
+            INSERT INTO quote_versions (
+                quote_id, version_label, snapshot_json
+            )
+            VALUES (?, ?, ?)
+        """
+        values = (
+            version.quote_id,
+            version.version_label,
+            json.dumps(version.snapshot, ensure_ascii=True),
+        )
+        with self.database.connect() as connection:
+            cursor = connection.execute(query, values)
+            connection.commit()
+            return int(cursor.lastrowid)
+
+    def list_by_quote(self, quote_id: int) -> list[dict[str, Any]]:
+        query = """
+            SELECT * FROM quote_versions
+            WHERE quote_id = ?
+            ORDER BY created_at DESC, id DESC
+        """
+        with self.database.connect() as connection:
+            rows = connection.execute(query, (quote_id,)).fetchall()
+        payloads = [dict(row) for row in rows]
+        for payload in payloads:
+            payload["snapshot"] = _load_json_object(payload.get("snapshot_json"))
+        return payloads
+
+
+def build_quote_snapshot(
+    quote: dict[str, Any],
+    intake: dict[str, Any] | None,
+    line_items: list[dict[str, Any]],
+) -> dict[str, Any]:
+    return {
+        "quote": dict(quote),
+        "intake": dict(intake) if intake else None,
+        "line_items": [dict(line_item) for line_item in line_items],
+    }
+
+
+def _load_json_object(raw_value: Any) -> dict[str, Any]:
+    if not raw_value:
+        return {}
+    if isinstance(raw_value, dict):
+        return raw_value
+    try:
+        parsed = json.loads(str(raw_value))
+    except json.JSONDecodeError:
+        return {}
+    return parsed if isinstance(parsed, dict) else {}

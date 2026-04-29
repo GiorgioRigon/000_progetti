@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import importlib.util
 import sqlite3
 import subprocess
 import sys
@@ -9,22 +10,34 @@ from pathlib import Path
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-if str(BASE_DIR) not in sys.path:
-    sys.path.insert(0, str(BASE_DIR))
+DATA_ACCESS_PATH = BASE_DIR / "app" / "data_access.py"
+SPEC = importlib.util.spec_from_file_location("cis_data_access", DATA_ACCESS_PATH)
+if SPEC is None or SPEC.loader is None:
+    raise RuntimeError(f"Unable to load data access module from {DATA_ACCESS_PATH}")
+DATA_ACCESS = importlib.util.module_from_spec(SPEC)
+sys.modules[SPEC.name] = DATA_ACCESS
+SPEC.loader.exec_module(DATA_ACCESS)
 
-from app.data_access import (  # noqa: E402
-    CampaignCreate,
-    CampaignRepository,
-    ContactCreate,
-    ContactRepository,
-    Database,
-    MessageCreate,
-    MessageRepository,
-    OrganizationCreate,
-    OrganizationRepository,
-    OutreachActionCreate,
-    OutreachActionRepository,
-)
+CampaignCreate = DATA_ACCESS.CampaignCreate
+CampaignRepository = DATA_ACCESS.CampaignRepository
+ContactCreate = DATA_ACCESS.ContactCreate
+ContactRepository = DATA_ACCESS.ContactRepository
+Database = DATA_ACCESS.Database
+MessageCreate = DATA_ACCESS.MessageCreate
+MessageRepository = DATA_ACCESS.MessageRepository
+OrganizationCreate = DATA_ACCESS.OrganizationCreate
+OrganizationRepository = DATA_ACCESS.OrganizationRepository
+OutreachActionCreate = DATA_ACCESS.OutreachActionCreate
+OutreachActionRepository = DATA_ACCESS.OutreachActionRepository
+QuoteCreate = DATA_ACCESS.QuoteCreate
+QuoteIntakeCreate = DATA_ACCESS.QuoteIntakeCreate
+QuoteIntakeRepository = DATA_ACCESS.QuoteIntakeRepository
+QuoteLineItemCreate = DATA_ACCESS.QuoteLineItemCreate
+QuoteLineItemRepository = DATA_ACCESS.QuoteLineItemRepository
+QuoteRepository = DATA_ACCESS.QuoteRepository
+QuoteVersionCreate = DATA_ACCESS.QuoteVersionCreate
+QuoteVersionRepository = DATA_ACCESS.QuoteVersionRepository
+build_quote_snapshot = DATA_ACCESS.build_quote_snapshot
 
 
 class DatabaseInitializationTests(unittest.TestCase):
@@ -53,6 +66,10 @@ class DatabaseInitializationTests(unittest.TestCase):
             self.assertIn("campaigns", tables)
             self.assertIn("organizations", tables)
             self.assertIn("contacts", tables)
+            self.assertIn("quote_intakes", tables)
+            self.assertIn("quotes", tables)
+            self.assertIn("quote_line_items", tables)
+            self.assertIn("quote_versions", tables)
 
 
 class DataAccessCrudTests(unittest.TestCase):
@@ -72,6 +89,10 @@ class DataAccessCrudTests(unittest.TestCase):
         self.contacts = ContactRepository(self.database)
         self.outreach_actions = OutreachActionRepository(self.database)
         self.messages = MessageRepository(self.database)
+        self.quote_intakes = QuoteIntakeRepository(self.database)
+        self.quotes = QuoteRepository(self.database)
+        self.quote_line_items = QuoteLineItemRepository(self.database)
+        self.quote_versions = QuoteVersionRepository(self.database)
 
     def tearDown(self) -> None:
         self.temp_dir.cleanup()
@@ -198,6 +219,79 @@ class DataAccessCrudTests(unittest.TestCase):
         self.assertEqual(history[0]["action_type"], "draft_outreach")
         self.assertEqual(history[0]["contact_full_name"], "Valentina Ciccarella")
         self.assertEqual(history[0]["subject"], "Spunto operativo per il rinnovo UNI/PdR 125 di IGSA Srl")
+
+    def test_can_create_quote_intake_quote_and_versions(self) -> None:
+        organization_id = self.organizations.create(
+            OrganizationCreate(
+                name="Ethics Client Spa",
+                project_key="ethics",
+                city="Vicenza",
+            )
+        )
+        intake_id = self.quote_intakes.create(
+            QuoteIntakeCreate(
+                project_key="ethics",
+                organization_id=organization_id,
+                title="Rinnovo ordinato PdR125",
+                intake_schema_key="pdr125_edocs",
+                intake_data={
+                    "requested_by": "Giorgio",
+                    "scope_summary": "Supporto per rinnovo e setup E-Docs",
+                },
+                summary="Supporto per rinnovo e setup E-Docs",
+            )
+        )
+        quote_id = self.quotes.create(
+            QuoteCreate(
+                project_key="ethics",
+                organization_id=organization_id,
+                quote_intake_id=intake_id,
+                title="Preventivo rinnovo PdR125",
+                quote_number="ETH-DRAFT",
+                status="draft",
+                currency="EUR",
+                valid_until="2026-05-31",
+                version_label="v1",
+            )
+        )
+        self.quote_line_items.create(
+            QuoteLineItemCreate(
+                quote_id=quote_id,
+                line_type="service",
+                code="ETH-CONS",
+                title="Consulenza PdR125",
+                quantity=2,
+                unit="giornata",
+                unit_price=450.0,
+                pricing_source="manual",
+            )
+        )
+
+        quote = self.quotes.get(quote_id)
+        intake = self.quote_intakes.get(intake_id)
+        line_items = self.quote_line_items.list_by_quote(quote_id)
+        version_id = self.quote_versions.create(
+            QuoteVersionCreate(
+                quote_id=quote_id,
+                version_label="v1",
+                snapshot=build_quote_snapshot(quote or {}, intake, line_items),
+            )
+        )
+        versions = self.quote_versions.list_by_quote(quote_id)
+        project_quotes = self.quotes.list_by_project("ethics")
+        organization_quotes = self.quotes.list_by_organization(organization_id)
+
+        self.assertIsNotNone(intake)
+        self.assertEqual(intake["intake_data"]["requested_by"], "Giorgio")
+        self.assertIsNotNone(quote)
+        self.assertEqual(quote["quote_number"], "ETH-DRAFT")
+        self.assertEqual(len(line_items), 1)
+        self.assertEqual(line_items[0]["line_total"], 900.0)
+        self.assertGreater(version_id, 0)
+        self.assertEqual(len(versions), 1)
+        self.assertEqual(versions[0]["snapshot"]["quote"]["title"], "Preventivo rinnovo PdR125")
+        self.assertEqual(len(project_quotes), 1)
+        self.assertEqual(len(organization_quotes), 1)
 
 
 if __name__ == "__main__":

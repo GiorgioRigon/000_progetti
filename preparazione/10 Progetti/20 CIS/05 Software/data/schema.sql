@@ -113,6 +113,70 @@ CREATE TABLE IF NOT EXISTS assets (
     FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS quote_intakes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    project_key TEXT NOT NULL,
+    organization_id INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'draft',
+    intake_schema_key TEXT,
+    intake_data_json TEXT,
+    summary TEXT,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS quotes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    project_key TEXT NOT NULL,
+    organization_id INTEGER NOT NULL,
+    quote_intake_id INTEGER,
+    quote_number TEXT,
+    title TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'draft',
+    currency TEXT NOT NULL DEFAULT 'EUR',
+    subtotal_amount REAL NOT NULL DEFAULT 0,
+    discount_amount REAL NOT NULL DEFAULT 0,
+    total_amount REAL NOT NULL DEFAULT 0,
+    valid_until TEXT,
+    version_label TEXT,
+    assumptions TEXT,
+    internal_notes TEXT,
+    client_notes TEXT,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    FOREIGN KEY (quote_intake_id) REFERENCES quote_intakes(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS quote_line_items (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    quote_id INTEGER NOT NULL,
+    line_type TEXT NOT NULL,
+    code TEXT,
+    title TEXT NOT NULL,
+    description TEXT,
+    quantity REAL NOT NULL DEFAULT 1,
+    unit TEXT,
+    unit_price REAL NOT NULL DEFAULT 0,
+    line_total REAL NOT NULL DEFAULT 0,
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    pricing_source TEXT,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (quote_id) REFERENCES quotes(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS quote_versions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    quote_id INTEGER NOT NULL,
+    version_label TEXT NOT NULL,
+    snapshot_json TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (quote_id) REFERENCES quotes(id) ON DELETE CASCADE
+);
+
 CREATE INDEX IF NOT EXISTS idx_organizations_campaign_id
     ON organizations(campaign_id);
 
@@ -142,3 +206,21 @@ CREATE INDEX IF NOT EXISTS idx_relationship_memory_organization_id
 
 CREATE INDEX IF NOT EXISTS idx_assets_campaign_id
     ON assets(campaign_id);
+
+CREATE INDEX IF NOT EXISTS idx_quote_intakes_project_key
+    ON quote_intakes(project_key);
+
+CREATE INDEX IF NOT EXISTS idx_quote_intakes_organization_id
+    ON quote_intakes(organization_id);
+
+CREATE INDEX IF NOT EXISTS idx_quotes_project_key
+    ON quotes(project_key);
+
+CREATE INDEX IF NOT EXISTS idx_quotes_organization_id
+    ON quotes(organization_id);
+
+CREATE INDEX IF NOT EXISTS idx_quote_line_items_quote_id
+    ON quote_line_items(quote_id);
+
+CREATE INDEX IF NOT EXISTS idx_quote_versions_quote_id
+    ON quote_versions(quote_id);

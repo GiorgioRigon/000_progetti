@@ -14,6 +14,7 @@
     <p><strong>Progetto attivo:</strong> {{ active_project_key }}</p>
     <div class="actions">
       <a class="button button-primary" href="{{ url_for('organizations_list') }}">Apri organizations</a>
+      <a class="button button-secondary" href="{{ url_for('quotes_list') }}">Apri preventivi</a>
       <a class="button button-secondary" href="{{ url_for('wb0_target_discovery') }}">Apri WB0</a>
     </div>
   </section>
@@ -25,6 +26,7 @@
       <li>Gestione manuale di organizations e contatti</li>
       <li>Import CSV con validazione minima</li>
       <li>WB0 base con output JSON riusabile per candidate organizations</li>
+      <li>Modulo preventivi MVP con intake, righe manuali e storico versioni</li>
     </ul>
   </section>
 {% endblock %}

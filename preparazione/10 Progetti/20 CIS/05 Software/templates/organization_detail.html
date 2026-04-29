@@ -138,6 +138,33 @@
 
   <section class="grid-two">
     <section class="card">
+      <h2>Preventivi collegati</h2>
+      <div class="actions">
+        <form method="post" action="{{ url_for('create_quote_from_organization', organization_id=organization.id) }}">
+          <button type="submit">Nuovo preventivo</button>
+        </form>
+        <a class="button button-secondary" href="{{ url_for('quotes_list', organization_id=organization.id) }}">Apri modulo preventivi</a>
+      </div>
+      {% if organization_quotes %}
+        <div class="stack">
+          {% for quote in organization_quotes %}
+            <div class="list-row">
+              <div>
+                <strong><a href="{{ url_for('quote_detail', quote_id=quote.id) }}">{{ quote.title }}</a></strong>
+                <p class="muted">{{ quote.quote_number or "senza numero" }} | {{ quote.status }}</p>
+              </div>
+              <div>
+                <strong>{{ "%.2f"|format(quote.total_amount or 0) }} {{ quote.currency }}</strong>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="muted">Nessun preventivo collegato a questa organization.</p>
+      {% endif %}
+    </section>
+
+    <section class="card">
       <h2>Qualificazione lead</h2>
       <p class="muted">
         Blocco minimo riusabile per tutti i progetti. I dettagli di dominio restano nelle note e nei workbot.

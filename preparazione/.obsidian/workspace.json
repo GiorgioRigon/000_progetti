@@ -55,12 +55,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "10 Progetti/20 CIS/05 Software/docs/PREVENTIVI_MODULE_PROPOSAL.md",
+                "file": "lancio app web.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "PREVENTIVI_MODULE_PROPOSAL"
+              "title": "lancio app web"
             }
           }
         ],
@@ -213,33 +213,34 @@
   },
   "active": "8100ac3eedd0a257",
   "lastOpenFiles": [
-    "260429 Scheda Info per preventivo.md",
+    "10 Progetti/20 CIS/05 Software/data/cis.sqlite3-journal",
+    "10 Progetti/20 CIS/05 Software/app/__pycache__/quotations.cpython-310.pyc.130595709957392",
+    "10 Progetti/20 CIS/05 Software/app/__pycache__/__init__.cpython-310.pyc.130595709957392",
+    "10 Progetti/20 CIS/05 Software/tests/__pycache__/test_quotations.cpython-310.pyc.126698606076048",
+    "10 Progetti/20 CIS/05 Software/tests/__pycache__/test_data_access.cpython-310.pyc.126698606076048",
+    "10 Progetti/20 CIS/05 Software/app/__pycache__/quotations.cpython-310.pyc.126698605688080",
+    "10 Progetti/20 CIS/05 Software/app/__pycache__/data_access.cpython-310.pyc.126698605688080",
+    "10 Progetti/20 CIS/05 Software/app/__pycache__/__init__.cpython-310.pyc.126698605688080",
+    "10 Progetti/20 CIS/05 Software/app/__pycache__/quotations.cpython-310.pyc.124021165541456",
+    "10 Progetti/20 CIS/05 Software/tests/__pycache__/test_quotations.cpython-310.pyc.124021165304880",
+    "10 Progetti/20 CIS/05 Software/tests/__pycache__/test_quotations.cpython-310.pyc.128199315345504",
     "10 Progetti/20 CIS/05 Software/docs/PREVENTIVI_MODULE_PROPOSAL.md",
+    "260429 Scheda Info per preventivo.md",
     "10 Progetti/20 CIS/05 Software/docs/ETHICS_FIRST_FOLLOWUPS.md",
     "30 Risorse/2026-04-21_scheda_dati_preventivo_su_misura_pdr125_e_docs_e_kpi.md",
     "260428 Creazione Mail Template.md",
-    "10 Progetti/20 CIS/05 Software/data/cis.sqlite3-journal",
     "10 Progetti/20 CIS/05 Software/projects/ethics/email_templates/first_cold_renewal_general_inbox.md",
     "10 Progetti/20 CIS/05 Software/projects/ethics/email_templates/first_cold_renewal_batch.md",
     "lancio app web.md",
     "10 Progetti/20 CIS/05 Software/docs/Ethics_Logo.jpg",
     "10 Progetti/20 CIS/05 Software/docs/ETHICS_EMAIL_SIGNATURE.md",
-    "10 Progetti/20 CIS/05 Software/docs/ethics_signature_thunderbird.html",
     "10 Progetti/20 CIS/05 Software/docs/ETHICS_FIRST_BATCH_INITIAL_EMAILS.md",
     "260424 Aggiornamento listino base per preventivi.md",
     "260427 Rilancio CIS da WB4.md",
     "10 Progetti/20 CIS/05 Software/docs/ETHICS_FIRST_BATCH_CONTACT_STRATEGY.md",
-    "10 Progetti/20 CIS/05 Software/app/__pycache__/__init__.cpython-310.pyc.124126918039056",
-    "10 Progetti/20 CIS/05 Software/app/__pycache__/__init__.cpython-310.pyc.131122604404656",
     "260425 Melodema recupero leads.md",
-    "10 Progetti/20 CIS/05 Software/data/cis.backup_pre_melodema_import_2026-04-25.sqlite3",
     "10 Progetti/20 CIS/05 Software/projects/melodema/LOW_PRIORITY_REVIEW_CHECKLIST.md",
     "10 Progetti/20 CIS/05 Software/projects/melodema/IMPORT_PROCEDURE.md",
-    "10 Progetti/20 CIS/05 Software/projects/melodema/melodema_attach_existing_queue_medium.csv",
-    "10 Progetti/20 CIS/05 Software/projects/melodema/melodema_cis_import_supplement_medium.csv",
-    "10 Progetti/20 CIS/05 Software/projects/melodema/melodema_review_high_priority_prequalified.csv",
-    "10 Progetti/20 CIS/05 Software/projects/melodema/melodema_review_queue.csv",
-    "10 Progetti/20 CIS/05 Software/projects/melodema/melodema_cis_import.csv",
     "10 Progetti/20 CIS/04 Roadmap/260425 Roadmap progetto Melodema.md",
     "90 Archivio/Git e Obsidian.md",
     "90 Archivio/90 Archivio.md",
@@ -248,7 +249,6 @@
     "269415 MU.BRE. Costruzioni.md",
     "260415 Lista Leads.md",
     "10 Progetti/20 CIS/05 Software/docs/ETHICS_WB1_PRIORITY_CHECKLIST.md",
-    "10 Progetti/20 CIS/05 Software/docs/WB1_MANUAL_BASE_RESEARCH_PROMPT.md",
-    "10 Progetti/20 CIS/05 Software/docs/ETHICS_VICENZA_PDR125_SELECTION.md"
+    "10 Progetti/20 CIS/05 Software/docs/WB1_MANUAL_BASE_RESEARCH_PROMPT.md"
   ]
 }

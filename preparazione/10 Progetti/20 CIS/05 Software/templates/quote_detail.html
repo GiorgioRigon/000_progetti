@@ -1,0 +1,273 @@
+{% extends "base.html" %}
+
+{% block title %}{{ quote.title }} - CIS{% endblock %}
+{% block body_class %}operational-page{% endblock %}
+
+{% block content %}
+  <section class="page-heading">
+    <div>
+      <p class="eyebrow">Dettaglio preventivo</p>
+      <h1>{{ quote.title }}</h1>
+      <p class="muted">
+        {{ quote.quote_number or "senza numero" }} | {{ quote.status }} | {{ quote.organization_name or "-" }}
+      </p>
+    </div>
+    <div class="actions">
+      <a class="button button-secondary" href="{{ url_for('quotes_list') }}">Torna a Preventivi</a>
+      {% if organization %}
+        <a class="button button-secondary" href="{{ url_for('organization_detail', organization_id=organization.id) }}">Apri organization</a>
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="grid-two">
+    <section class="card" id="scheda-dati">
+      <h2>Scheda dati preventivo</h2>
+      {% if intake and intake_schema.sections %}
+        <form class="stack" method="post" action="{{ url_for('quote_detail', quote_id=quote.id) }}">
+          <input type="hidden" name="form_type" value="intake">
+
+          <div class="grid-two compact">
+            <div>
+              <label for="intake_status">Stato scheda</label>
+              <select id="intake_status" name="intake_status">
+                {% for option in ["draft", "qualified", "ready_for_quote", "archived"] %}
+                  <option value="{{ option }}" {% if intake.status == option %}selected{% endif %}>{{ option }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div>
+              <label for="intake_summary">Sintesi</label>
+              <input id="intake_summary" name="intake_summary" type="text" value="{{ intake.summary or '' }}">
+            </div>
+          </div>
+
+          {% for section in intake_schema.sections %}
+            <fieldset class="stack">
+              <legend>{{ section.label or section.key }}</legend>
+              {% for field in section.fields %}
+                <div>
+                  <label for="{{ field.key }}">{{ field.label or field.key }}{% if field.required %} *{% endif %}</label>
+                  {% if field.type == "textarea" %}
+                    <textarea id="{{ field.key }}" name="{{ field.key }}" rows="{{ field.rows or '3' }}" placeholder="{{ field.placeholder or '' }}">{{ intake_form_data.get(field.key, '') }}</textarea>
+                  {% elif field.type == "select" %}
+                    <select id="{{ field.key }}" name="{{ field.key }}">
+                      <option value="">Seleziona</option>
+                      {% for option in field.options %}
+                        <option value="{{ option }}" {% if intake_form_data.get(field.key, '') == option %}selected{% endif %}>{{ option }}</option>
+                      {% endfor %}
+                    </select>
+                  {% else %}
+                    <input id="{{ field.key }}" name="{{ field.key }}" type="text" value="{{ intake_form_data.get(field.key, '') }}" placeholder="{{ field.placeholder or '' }}">
+                  {% endif %}
+                  {% if field.help %}
+                    <p class="muted">{{ field.help }}</p>
+                  {% endif %}
+                </div>
+              {% endfor %}
+            </fieldset>
+          {% endfor %}
+
+          <button type="submit">Salva scheda</button>
+        </form>
+      {% elif intake %}
+        <p class="muted">Scheda presente ma senza struttura configurata.</p>
+      {% else %}
+        <p class="muted">Nessuna scheda dati disponibile.</p>
+      {% endif %}
+    </section>
+
+    <section class="card">
+      <h2>Generazione base da listino</h2>
+      {% if suggested_line_items %}
+        <p class="muted">Queste righe possono essere generate dalla scheda dati e dal listino del progetto.</p>
+        <ul class="plain-list">
+          {% for item in suggested_line_items %}
+            <li>
+              {{ item.title }}
+              {% if item.code %}({{ item.code }}){% endif %}
+              - {{ item.quantity }} {{ item.unit or "" }} x {{ "%.2f"|format(item.unit_price or 0) }} {{ quote.currency }}
+            </li>
+          {% endfor %}
+        </ul>
+        <form method="post" action="{{ url_for('quote_detail', quote_id=quote.id) }}">
+          <input type="hidden" name="form_type" value="generate_from_intake">
+          <button type="submit">Genera righe suggerite</button>
+        </form>
+      {% elif intake %}
+        <p class="muted">La scheda compilata non produce ancora righe suggerite dal listino.</p>
+      {% else %}
+        <p class="muted">Compila prima la scheda dati preventivo.</p>
+      {% endif %}
+    </section>
+
+    <section class="card">
+      <h2>Testata</h2>
+      <dl class="detail-grid">
+        <div>
+          <dt>Organization</dt>
+          <dd>{{ quote.organization_name or "-" }}</dd>
+        </div>
+        <div>
+          <dt>Valido fino al</dt>
+          <dd>{{ quote.valid_until or "-" }}</dd>
+        </div>
+        <div>
+          <dt>Imponibile</dt>
+          <dd>{{ "%.2f"|format(quote.subtotal_amount or 0) }} {{ quote.currency }}</dd>
+        </div>
+        <div>
+          <dt>Sconto</dt>
+          <dd>{{ "%.2f"|format(quote.discount_amount or 0) }} {{ quote.currency }}</dd>
+        </div>
+        <div>
+          <dt>Totale</dt>
+          <dd><strong>{{ "%.2f"|format(quote.total_amount or 0) }} {{ quote.currency }}</strong></dd>
+        </div>
+        <div>
+          <dt>Versione</dt>
+          <dd>{{ quote.version_label or "-" }}</dd>
+        </div>
+        <div class="detail-span">
+          <dt>Assunzioni</dt>
+          <dd>{{ quote.assumptions or "-" }}</dd>
+        </div>
+        <div class="detail-span">
+          <dt>Note interne</dt>
+          <dd>{{ quote.internal_notes or "-" }}</dd>
+        </div>
+        <div class="detail-span">
+          <dt>Note cliente</dt>
+          <dd>{{ quote.client_notes or "-" }}</dd>
+        </div>
+      </dl>
+    </section>
+
+    <section class="card">
+      <h2>Riepilogo scheda dati</h2>
+      {% if intake %}
+        <dl class="detail-grid">
+          <div>
+            <dt>Scheda</dt>
+            <dd>{{ intake.intake_schema_key or "-" }}</dd>
+          </div>
+          <div>
+            <dt>Stato</dt>
+            <dd>{{ intake.status }}</dd>
+          </div>
+          <div class="detail-span">
+            <dt>Sintesi</dt>
+            <dd>{{ intake.summary or "-" }}</dd>
+          </div>
+          {% for key, value in intake.intake_data.items() %}
+            {% if value %}
+              <div class="detail-span">
+                <dt>{{ key.replace("_", " ").title() }}</dt>
+                <dd>{{ value }}</dd>
+              </div>
+            {% endif %}
+          {% endfor %}
+        </dl>
+      {% else %}
+        <p class="muted">Nessuna scheda dati disponibile.</p>
+      {% endif %}
+    </section>
+  </section>
+
+  <section class="grid-two">
+    <section class="card">
+      <h2>Aggiungi riga</h2>
+      <form class="stack" method="post" action="{{ url_for('quote_detail', quote_id=quote.id) }}">
+        <input type="hidden" name="form_type" value="line_item">
+
+        <div class="grid-two compact">
+          <div>
+            <label for="line_type">Tipo riga</label>
+            <select id="line_type" name="line_type">
+              {% for option in ["service", "software", "setup", "training", "travel", "custom"] %}
+                <option value="{{ option }}">{{ option }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label for="code">Codice</label>
+            <input id="code" name="code" type="text">
+          </div>
+        </div>
+
+        <label for="title">Titolo</label>
+        <input id="title" name="title" type="text" required>
+
+        <label for="description">Descrizione</label>
+        <textarea id="description" name="description" rows="3"></textarea>
+
+        <div class="grid-two compact">
+          <div>
+            <label for="quantity">Quantita</label>
+            <input id="quantity" name="quantity" type="number" min="0.01" step="0.01" value="1" required>
+          </div>
+          <div>
+            <label for="unit">Unita</label>
+            <input id="unit" name="unit" type="text" placeholder="cad, giornata, mese">
+          </div>
+        </div>
+
+        <div class="grid-two compact">
+          <div>
+            <label for="unit_price">Prezzo unitario</label>
+            <input id="unit_price" name="unit_price" type="number" min="0" step="0.01" value="0" required>
+          </div>
+          <div>
+            <label for="sort_order">Ordine</label>
+            <input id="sort_order" name="sort_order" type="number" min="0" step="1" value="{{ line_items|length }}">
+          </div>
+        </div>
+
+        <label for="pricing_source">Fonte prezzo</label>
+        <input id="pricing_source" name="pricing_source" type="text" value="manual">
+
+        <button type="submit">Aggiungi riga</button>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Versioni salvate</h2>
+      {% if versions %}
+        <ul class="plain-list">
+          {% for version in versions %}
+            <li>{{ version.version_label }} | {{ version.created_at }}</li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="muted">Nessuna versione salvata.</p>
+      {% endif %}
+    </section>
+  </section>
+
+  <section class="card">
+    <h2>Righe preventivo</h2>
+    {% if line_items %}
+      <div class="stack">
+        {% for item in line_items %}
+          <div class="list-row">
+            <div>
+              <strong>{{ item.title }}</strong>
+              <p class="muted">
+                {{ item.line_type }}{% if item.code %} | {{ item.code }}{% endif %}
+                | {{ item.quantity }} {{ item.unit or "" }} x {{ "%.2f"|format(item.unit_price or 0) }}
+              </p>
+              {% if item.description %}
+                <p class="muted">{{ item.description }}</p>
+              {% endif %}
+            </div>
+            <div>
+              <strong>{{ "%.2f"|format(item.line_total or 0) }} {{ quote.currency }}</strong>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="muted">Nessuna riga preventivo inserita.</p>
+    {% endif %}
+  </section>
+{% endblock %}
