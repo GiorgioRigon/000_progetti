@@ -176,16 +176,27 @@ def _build_replacements(
 ) -> dict[str, str]:
     contact_full_name = ""
     contact_first_name = ""
+    contact_last_name = ""
     contact_role = ""
+    contact_notes = ""
 
     if contact:
         contact_full_name = str(contact.get("full_name") or "").strip()
         contact_first_name = str(contact.get("first_name") or "").strip()
+        contact_last_name = str(contact.get("last_name") or "").strip()
         if not contact_first_name and contact_full_name:
             contact_first_name = contact_full_name.split(" ", 1)[0]
+        if not contact_last_name and contact_full_name and " " in contact_full_name:
+            contact_last_name = contact_full_name.rsplit(" ", 1)[-1].strip()
         contact_role = str(contact.get("role") or "").strip()
+        contact_notes = str(contact.get("notes") or "")
 
-    saluto = f"Buongiorno {contact_first_name}," if contact_first_name else "Buongiorno,"
+    saluto = _build_saluto(
+        contact_first_name=contact_first_name,
+        contact_last_name=contact_last_name,
+        contact_full_name=contact_full_name,
+        contact_notes=contact_notes,
+    )
     organization_name = str(organization.get("name") or "").strip()
     city = str(organization.get("city") or "").strip()
     sector = str(organization.get("sector") or "").strip()
@@ -260,6 +271,30 @@ def _build_replacements(
         "[PROSSIMO_PASSO]": str(qualification_data.get("next_step") or "").strip(),
         "[FIRMA]": firma,
     }
+
+
+def _build_saluto(
+    contact_first_name: str,
+    contact_last_name: str,
+    contact_full_name: str,
+    contact_notes: str,
+) -> str:
+    saluto_title = _extract_contact_note_value(contact_notes, "Titolo saluto:")
+    if saluto_title and contact_last_name:
+        return f"Buongiorno {saluto_title} {contact_last_name},"
+    if contact_full_name:
+        return f"Buongiorno {contact_full_name},"
+    if contact_first_name:
+        return f"Buongiorno {contact_first_name},"
+    return "Buongiorno,"
+
+
+def _extract_contact_note_value(notes: str, prefix: str) -> str:
+    for raw_line in notes.splitlines():
+        line = raw_line.strip()
+        if line.startswith(prefix):
+            return line.split(":", 1)[1].strip()
+    return ""
 
 
 def extract_pdr125_data(notes: str) -> dict[str, str]:

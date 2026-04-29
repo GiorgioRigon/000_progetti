@@ -92,6 +92,22 @@ Appunti e idee di sviluppo del progetto CIS, organizzati per argomento.
 
 - spazio riservato per note e decisioni su UX, navigazione e viste operative
 
+## Preventivi
+
+### Decisioni correnti
+
+- il modulo `Preventivi` puo essere sviluppato dentro il CIS usando lo stesso stack tecnico e la stessa UI locale
+- il modulo non va modellato come funzione specifica di `ethics`, ma come componente multi-progetto con configurazioni dedicate per `project_key`
+- per la prima fase conviene mantenere strutturati solo i campi comuni del preventivo e salvare i dettagli della scheda in formato flessibile
+- listini, pacchetti, condizioni e schede raccolta dati devono vivere per progetto dentro `projects/<project_key>/`
+- `ethics` e il primo caso pilota utile per l'MVP del modulo, mentre `melodema` serve come secondo test per validare che il modello non sia troppo rigido o troppo legato al dominio certificazioni
+
+### Razionale
+
+- questa impostazione mantiene continuita tra lead, organization, qualificazione, storico relazionale e proposta economica
+- evita di creare un sistema parallelo in Excel come fonte principale dei dati
+- preserva l'architettura multi-progetto gia presente nel CIS
+
 ## WB4
 
 ### Decisioni correnti
@@ -104,6 +120,9 @@ Appunti e idee di sviluppo del progetto CIS, organizzati per argomento.
 - per migliorare la qualita restando nell'MVP, la bozza puo leggere anche dati gia presenti nel CIS: blocco note `[PdR125]`, qualificazione lead e configurazione di presentazione/outreach del progetto in `communication_style.yaml`
 - per mail a freddo `ethics`, la presentazione non va lasciata implicita: deve dichiarare chi scrive, da quale contesto arriva e quale problema operativo prova a semplificare, mantenendo tono sobrio e non promozionale
 - per `ethics` il template base di prima mail resta consulenziale e sobrio; una variante piu diretta viene salvata come `projects/ethics/email_templates/first_outreach_direct.md` per interlocutori piu rapidi o orientati al sodo
+- nella fase operativa iniziale `ethics`, il canale di primo contatto preferibile non va automatizzato: per la maggior parte dei lead qualificati il percorso raccomandato e `email prima -> telefonata di instradamento o follow-up -> LinkedIn come supporto`, salvo casi con email diretta molto debole o contatto LinkedIn chiaramente dominante
+- se esiste un'email diretta verificata e coerente con il ruolo, va preferita al canale generale; se non esiste, conviene usare l'email generale con riferimento nominativo nel testo e una telefonata breve entro 24-72 ore per chiedere inoltro o verificare il referente corretto
+- il copy multicanale deve restare focalizzato su un solo problema operativo per volta: mantenimento/rinnovo PdR125, ordine documentale, evidenze, KPI e responsabilita; evitare di presentare insieme E-docs, consulenza, formazione e altre linee come catalogo
 
 ### Evoluzione utile successiva
 
@@ -112,6 +131,12 @@ Appunti e idee di sviluppo del progetto CIS, organizzati per argomento.
 - per `ethics` i template possono iniziare a essere indicizzati in `projects/ethics/email_templates/templates_index.yaml`, mantenendo i contenuti testuali nei file `.md`
 - una fase successiva puo aggiungere suggerimento automatico rule-based del template piu adatto usando dati gia presenti nel CIS, ad esempio ruolo del contatto, canale disponibile, segnali di qualificazione e struttura del lead
 - solo dopo aver consolidato template e regole semplici ha senso valutare una selezione o riscrittura assistita da LLM
+- il prossimo miglioramento MVP piu utile dopo la bozza email e un tracciamento manuale leggero dell'esito del contatto, con pochi stati chiari e follow-up pianificabile, prima di aggiungere invio automatico o automazioni di sequenza
+- per `ethics` i canali aggiuntivi da supportare in bozza possono restare manuali ma espliciti: `email`, `LinkedIn`, `telefono`; la generazione di script/copy puo riusare lo stesso motore template senza introdurre un nuovo workflow complesso
+- la mail rifinita su `MU.BRE.` puo diventare il nuovo riferimento reale per `WB4` su `ethics`: tono piu pratico, presentazione minima di `Ethics` come consulenza + formazione + supporto ai percorsi di certificazione, spiegazione sobria di `E-docs` come strumento nato dall'uso operativo interno, accenno leggero a `KPI`, lessico meno consulenziale e meno astratto
+- per `ethics` conviene distinguere chiaramente due casi di prima mail a freddo: `referente noto` e `casella generale`. Se il referente non e sicuro, la prima mail deve essere molto piu breve e servire soprattutto a identificare la persona corretta, senza spiegare subito in dettaglio `E-docs`
+- prima di introdurre un LLM in `WB4`, conviene portare questo apprendimento dentro template e placeholder piu mirati: e una correzione ad alta resa e basso rischio, pienamente dentro l'MVP
+- un eventuale LLM locale via `LM Studio` ha senso solo come fase successiva e opzionale di riscrittura assistita o proposta varianti; non serve per chiudere il flusso base `WB4` e oggi aumenterebbe complessita, dipendenze e superficie di debug troppo presto
 
 ## Data Model
 

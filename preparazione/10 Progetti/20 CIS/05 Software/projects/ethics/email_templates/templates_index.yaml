@@ -22,3 +22,27 @@ templates:
       - fase:rinnovo
       - tono:diretto
       - canale:email_fredda
+
+  - filename: first_cold_renewal_batch.md
+    label: Prima mail a freddo rinnovo
+    description: Template pratico per i primi batch su lead PdR125 in rinnovo, costruito sullo schema affinato manualmente per MU.BRE.
+    tags:
+      - destinatario:hr
+      - destinatario:qualita
+      - destinatario:generale
+      - azienda:pmi
+      - azienda:strutturata
+      - fase:rinnovo
+      - tono:pratico
+      - canale:email_fredda
+
+  - filename: first_cold_renewal_general_inbox.md
+    label: Prima mail a freddo casella generale
+    description: Prima mail breve di instradamento per caselle generali quando non c'e ancora un referente sicuro.
+    tags:
+      - destinatario:generale
+      - azienda:pmi
+      - azienda:strutturata
+      - fase:rinnovo
+      - tono:pratico
+      - canale:email_fredda

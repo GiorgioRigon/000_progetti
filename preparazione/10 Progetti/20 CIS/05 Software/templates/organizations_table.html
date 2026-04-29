@@ -18,6 +18,34 @@
   </section>
 
   <section class="card">
+    <form class="table-search-form" method="get" action="{{ url_for('organizations_table') }}">
+      <div class="table-search-field">
+        <label for="organization-table-search">Ricerca</label>
+        <input
+          id="organization-table-search"
+          name="q"
+          type="search"
+          value="{{ search_query }}"
+          placeholder="Nome, citta, tipo, email, telefono, fit..."
+          autocomplete="off"
+        >
+      </div>
+      <div class="table-search-actions">
+        <button type="submit">Cerca</button>
+        {% if search_query %}
+          <a class="button button-secondary" href="{{ url_for('organizations_table') }}">Azzera</a>
+        {% endif %}
+      </div>
+    </form>
+
+    <p class="muted search-summary" data-default-total="{{ table_rows|length }}" data-overall-total="{{ total_organizations }}">
+      {% if search_query %}
+        Risultati: <strong>{{ table_rows|length }}</strong> su {{ total_organizations }} per <strong>{{ search_query }}</strong>.
+      {% else %}
+        Totale righe visibili: <strong>{{ table_rows|length }}</strong>.
+      {% endif %}
+    </p>
+
     {% if table_rows %}
       <div class="table-wrap">
         <table class="data-table data-table-compact">
@@ -39,7 +67,18 @@
           </thead>
           <tbody>
             {% for row in table_rows %}
-              <tr>
+              <tr data-searchable-row data-search-text="{{ [
+                row.organization.name,
+                row.organization.organization_type,
+                row.organization.city,
+                row.organization.country,
+                row.organization.email,
+                row.organization.phone,
+                row.qualification.fit_label,
+                row.qualification.priority_level,
+                row.qualification.opportunity_type,
+                row.qualification.next_step
+              ]|join(' ')|lower }}">
                 <td>
                   <strong>{{ row.organization.name }}</strong>
                 </td>
@@ -58,6 +97,9 @@
                 </td>
               </tr>
             {% endfor %}
+            <tr data-empty-state hidden>
+              <td colspan="12">Nessuna organization corrisponde alla ricerca live.</td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -66,4 +108,53 @@
     {% endif %}
   </section>
   </div>
+
+  {% if table_rows %}
+    <script>
+      (() => {
+        const searchInput = document.getElementById("organization-table-search");
+        const rows = Array.from(document.querySelectorAll("[data-searchable-row]"));
+        const summary = document.querySelector(".search-summary");
+        const emptyState = document.querySelector("[data-empty-state]");
+
+        if (!searchInput || rows.length === 0 || !summary) {
+          return;
+        }
+
+        const defaultTotal = Number(summary.dataset.defaultTotal || rows.length);
+        const overallTotal = Number(summary.dataset.overallTotal || defaultTotal);
+
+        const updateSummary = (visibleCount, query) => {
+          if (query) {
+            summary.innerHTML = `Risultati live: <strong>${visibleCount}</strong> su ${overallTotal} per <strong>${query}</strong>.`;
+            return;
+          }
+          summary.innerHTML = `Totale righe visibili: <strong>${defaultTotal}</strong>.`;
+        };
+
+        const filterRows = () => {
+          const query = searchInput.value.trim().toLowerCase();
+          let visibleCount = 0;
+
+          rows.forEach((row) => {
+            const haystack = row.dataset.searchText || "";
+            const match = !query || haystack.includes(query);
+            row.hidden = !match;
+            if (match) {
+              visibleCount += 1;
+            }
+          });
+
+          if (emptyState) {
+            emptyState.hidden = visibleCount !== 0;
+          }
+
+          updateSummary(visibleCount, query);
+        };
+
+        searchInput.addEventListener("input", filterRows);
+        filterRows();
+      })();
+    </script>
+  {% endif %}
 {% endblock %}

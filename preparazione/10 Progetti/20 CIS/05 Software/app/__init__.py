@@ -507,10 +507,28 @@ def create_app(
     def organizations_table() -> str:
         active_project_key = get_active_project_key()
         organizations_for_project = organizations.list_by_project(active_project_key)
+        search_query = request.args.get("q", "").strip()
+        normalized_search_query = search_query.casefold()
         table_rows = []
 
         for organization in organizations_for_project:
             qualification_data = extract_qualification_data(organization.get("notes"))
+            if normalized_search_query:
+                searchable_parts = [
+                    str(organization.get("name") or ""),
+                    str(organization.get("organization_type") or ""),
+                    str(organization.get("city") or ""),
+                    str(organization.get("country") or ""),
+                    str(organization.get("email") or ""),
+                    str(organization.get("phone") or ""),
+                    str(qualification_data.get("fit_label") or ""),
+                    str(qualification_data.get("priority_level") or ""),
+                    str(qualification_data.get("opportunity_type") or ""),
+                    str(qualification_data.get("next_step") or ""),
+                ]
+                searchable_text = " ".join(searchable_parts).casefold()
+                if normalized_search_query not in searchable_text:
+                    continue
             table_rows.append(
                 {
                     "organization": organization,
@@ -521,6 +539,8 @@ def create_app(
         return render_template(
             "organizations_table.html",
             table_rows=table_rows,
+            search_query=search_query,
+            total_organizations=len(organizations_for_project),
         )
 
     @app.route("/organizations/<int:organization_id>", methods=["GET", "POST"])
