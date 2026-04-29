@@ -79,3 +79,67 @@ Un saluto,
 Giorgio [Cognome]
 E-docs
 ```
+
+## 3. Tonello Energie - follow-up telefonico
+
+**Data target**
+
+`2026-05-04`
+
+**Obiettivo**
+
+Capire chi segue internamente il tema `PdR125` e ottenere il referente corretto dopo la prima mail alla casella generale.
+
+**Script breve**
+
+```text
+Buongiorno, sono Giorgio [Cognome] di Ethics.
+
+Vi avevo scritto nei giorni scorsi in merito alla gestione del rinnovo PdR125.
+
+Chiamavo solo per capire qual è la persona più adatta a cui fare riferimento su questo tema, così da poter scrivere direttamente al referente corretto.
+```
+
+**Se chiedono di cosa si tratta**
+
+```text
+Noi lavoriamo su parità di genere e percorsi di certificazione. In alcuni casi aiutiamo le aziende a rendere più semplice la gestione pratica della PdR125, soprattutto lato documenti, aggiornamenti, KPI e coordinamento interno.
+```
+
+**Esito ideale da ottenere**
+
+- nome e cognome referente
+- ruolo
+- mail diretta o conferma del canale corretto
+
+## 4. Insieme - follow-up telefonico
+
+**Data target**
+
+`2026-05-05`
+
+**Obiettivo**
+
+Verificare che la mail sia arrivata a `Marina Fornasier` o alla persona corretta e capire se vale la pena aprire un confronto breve.
+
+**Script breve**
+
+```text
+Buongiorno, sono Giorgio [Cognome] di Ethics.
+
+Avevo scritto nei giorni scorsi all'attenzione della Dott.ssa Marina Fornasier in merito alla gestione quotidiana del sistema PdR125.
+
+Chiamavo solo per capire se la mail è arrivata correttamente e se il tema è seguito dalla persona giusta.
+```
+
+**Se chiedono di cosa si tratta**
+
+```text
+Molto semplicemente: noi lavoriamo su parità di genere e percorsi di certificazione, e in alcuni casi proponiamo un supporto operativo leggero per aiutare a gestire in modo più semplice documenti, aggiornamenti, KPI e passaggi interni.
+```
+
+**Esito ideale da ottenere**
+
+- conferma che la mail è arrivata
+- conferma che `Marina Fornasier` è il riferimento corretto oppure nome alternativo
+- eventuale disponibilità a un confronto breve
