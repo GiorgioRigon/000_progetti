@@ -73,3 +73,49 @@ Poi apri nel browser:
 ```text
 http://127.0.0.1:5000
 ```
+
+## Avvio rapido su Windows
+
+Se usi il `venv` Windows gia presente nella cartella, puoi avviare il `CIS` senza riscrivere i comandi ogni volta.
+
+Metodo consigliato da Esplora file o da PowerShell:
+
+```text
+AVVIA_CIS.bat
+```
+
+Oppure:
+
+```text
+start_cis.bat
+```
+
+Se invece vuoi lanciare direttamente lo script PowerShell:
+
+```powershell
+.\start_cis.ps1
+```
+
+attenzione:
+
+- `start_cis.bat` e `AVVIA_CIS.bat` usano gia `powershell -ExecutionPolicy Bypass`
+- quindi in genere non richiedono `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass`
+- `start_cis.ps1` eseguito direttamente in una sessione PowerShell puo invece essere bloccato dalla policy corrente
+- in quel caso serve prima:
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+```
+
+poi:
+
+```powershell
+.\start_cis.ps1
+```
+
+Questi launcher:
+
+- usano `.venv\Scripts\python.exe`
+- inizializzano `data\cis.sqlite3` se manca
+- aprono il browser su `http://127.0.0.1:5000`
+- avviano il server Flask locale

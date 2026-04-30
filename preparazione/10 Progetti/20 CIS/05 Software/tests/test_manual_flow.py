@@ -152,6 +152,57 @@ class ManualFlowTests(unittest.TestCase):
         self.assertIn("Qualificazione lead aggiornata correttamente.", qualification_page)
         self.assertIn("territorio forte, repertorio coerente", qualification_page)
 
+        strategy_response = self.client.post(
+            f"/organizations/{organization_id}",
+            data={
+                "form_type": "wb3_strategy",
+                "channel": "email_diretta",
+                "channel_reason": "Esiste una email diretta della direzione artistica.",
+                "commercial_angle": "Proporre un primo contatto orientato a repertorio coerente e collaborazione locale.",
+                "caution_note": "Non dare per scontata la disponibilita di budget o calendario.",
+                "next_step": "Preparare una prima mail sintetica e verificare un follow-up entro 5 giorni.",
+            },
+            follow_redirects=True,
+        )
+        strategy_page = strategy_response.get_data(as_text=True)
+        self.assertEqual(strategy_response.status_code, 200)
+        self.assertIn("WB3 aggiornato correttamente.", strategy_page)
+        self.assertIn("email_diretta", strategy_page)
+
+        followup_response = self.client.post(
+            f"/organizations/{organization_id}",
+            data={
+                "form_type": "wb5_followup",
+                "followup_window": "3-5 giorni lavorativi",
+                "channel": "email_breve",
+                "micro_script": "Riprendo il messaggio precedente per capire se il tema e attuale.",
+                "reason": "Esiste una strategia gia definita e conviene un richiamo leggero.",
+                "next_status": "attesa_riscontro",
+            },
+            follow_redirects=True,
+        )
+        followup_page = followup_response.get_data(as_text=True)
+        self.assertEqual(followup_response.status_code, 200)
+        self.assertIn("WB5 aggiornato correttamente.", followup_page)
+        self.assertIn("3-5 giorni lavorativi", followup_page)
+
+        relationship_memory_response = self.client.post(
+            f"/organizations/{organization_id}",
+            data={
+                "form_type": "relationship_memory",
+                "memory_type": "channel_preference",
+                "content": "Preferisce un primo contatto via email con proposta sintetica.",
+                "importance": "3",
+                "source": "verifica manuale",
+                "contact_id": str(contact_id),
+            },
+            follow_redirects=True,
+        )
+        relationship_memory_page = relationship_memory_response.get_data(as_text=True)
+        self.assertEqual(relationship_memory_response.status_code, 200)
+        self.assertIn("Relationship memory aggiornata correttamente.", relationship_memory_page)
+        self.assertIn("channel_preference", relationship_memory_page)
+
         dashboard_response = self.client.get("/organizations")
         dashboard_page = dashboard_response.get_data(as_text=True)
         self.assertEqual(dashboard_response.status_code, 200)

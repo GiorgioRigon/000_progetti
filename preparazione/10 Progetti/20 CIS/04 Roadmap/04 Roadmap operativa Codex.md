@@ -4,7 +4,7 @@ type: roadmap
 project: CIS
 status: attivo
 created: 2026-03-14
-updated: 2026-03-14
+updated: 2026-04-30
 tags:
   - roadmap
   - codex
@@ -44,6 +44,185 @@ Alla fine dimmi:
 2. come verificare il risultato
 3. qual e il prossimo passo naturale
 ```
+
+## Obiettivo da ricordare
+
+Obiettivo originario del `CIS`:
+
+- costruire una piattaforma locale assistita da AI per ricerca commerciale mirata e generazione di contatti altamente qualificati
+- mantenere `human in the loop` su ogni azione esterna
+- rendere riusabile il sistema su progetti diversi tramite configurazioni di progetto
+- arrivare almeno a un flusso minimo completo: discovery -> import -> arricchimento -> qualificazione -> bozza outreach -> storico minimo
+
+Questo obiettivo oggi puo essere considerato il perimetro di `CIS 1.0`.
+
+## Stato reale al 2026-04-30
+
+### Sintesi
+
+Lo sviluppo ordinato della roadmap e stato interrotto durante l'uso reale sul progetto `ethics`.
+
+Da quel momento il `CIS` ha continuato a evolvere in parallelo tra:
+
+- completamento di parte della roadmap originale
+- aggiunte operative emerse dall'uso reale
+- prima estensione verso modulo `Preventivi`
+
+Il risultato pratico e questo:
+
+- `CIS 1.0` esiste ed e gia usabile come sistema locale `human in the loop`
+- il flusso minimo e stato portato oltre il solo MVP dati/dashboard
+- non tutta la roadmap originale e stata completata
+- alcune parti previste sono rimaste indietro
+- alcune parti fuori roadmap sono gia entrate nel prodotto
+
+### Stato per passo
+
+Legenda:
+
+- `fatto`: implementato e presente in codice o test/documentazione operativa
+- `parziale`: presente in forma minima o implicita, ma non come modulo pienamente chiuso
+- `non fatto`: non risulta implementato come parte distinta
+- `superato`: il lavoro reale ha preso una forma diversa rispetto al passo originario
+
+#### Fase 1 - Fondazioni
+
+1. `fatto`
+2. `fatto`
+3. `fatto`
+4. `fatto`
+
+#### Fase 2 - Dati e configurazione
+
+5. `fatto`
+6. `fatto`
+7. `fatto`
+8. `fatto`
+9. `fatto`
+10. `fatto`
+
+#### Fase 3 - Prima applicazione funzionante
+
+11. `fatto`
+12. `fatto`
+13. `fatto`
+14. `fatto`
+15. `fatto`
+
+#### Fase 3 bis - Consolidamento operativo prima dei Workbot
+
+16. `fatto`
+17. `fatto`
+18. `fatto`
+19. `fatto`
+20. `fatto`
+21. `fatto`
+
+#### Fase 4 - Workbot essenziali
+
+22. `fatto`
+22bis. `fatto`
+22tris. `fatto`
+22 quater. `fatto`
+22 quinquies. `fatto`
+23. `fatto`
+24. `fatto`
+25. `fatto`
+26. `non fatto`
+27. `fatto`
+28. `fatto`
+29. `non fatto`
+30. `parziale`
+
+#### Fase 5 - Rifinitura e consolidamento
+
+31. `parziale`
+32. `parziale`
+33. `fatto`
+34. `fatto`
+35. `fatto`
+36. `non fatto`
+
+### Cosa considerare chiuso per CIS 1.0
+
+Per il `CIS 1.0` si possono considerare sostanzialmente chiusi:
+
+- fondazioni architetturali locali `Flask + SQLite + configurazioni per progetto`
+- gestione manuale `organizations` e `contacts`
+- import CSV
+- selezione progetto attivo
+- `WB0` come filtro operativo prima del database
+- `WB1` come arricchimento manuale o assistito
+- qualificazione lead semplice
+- `WB4` con bozza outreach modificabile e storico minimo
+- uso reale del sistema su `ethics`
+
+### Gap ancora aperti rispetto all'obiettivo originario
+
+Restano aperti o incompleti, rispetto al traguardo iniziale:
+
+- `WB3 Strategy Builder` come modulo esplicito
+- `WB5 Follow-up Planner` come modulo esplicito
+- `relationship_memory` come funzione davvero operativa e non solo appoggiata alle note
+- rifinitura finale di UX e logging come fase deliberata di consolidamento
+- piano scritto di introduzione `LLM` coerente con l'architettura
+
+## Fasi aggiunte fuori roadmap originaria
+
+Durante l'uso reale sono emerse fasi non previste o non prioritarie nella roadmap iniziale.
+
+### Fase A - Roadmap 2 settimane su profili WB0/WB1
+
+Questa fase e da considerare `fatta`.
+
+Ha introdotto:
+
+- `workbot_profiles.json` per progetto
+- affinamento operativo di `WB0` e `WB1`
+- profili reali per `melodema` e `ethics`
+- riallineamento dei prompt preview al lavoro commerciale reale
+
+### Fase B - Uso operativo reale su Ethics
+
+Questa fase e da considerare `fatta`.
+
+Ha prodotto:
+
+- verifica concreta del flusso `WB0 -> import -> WB1 -> qualificazione -> prossimo passo`
+- adattamenti del modello ai lead `PdR125`
+- documentazione operativa reale invece di pura pianificazione
+
+### Fase C - Preventivi multi-progetto
+
+Questa fase e `avviata`.
+
+Ha introdotto:
+
+- modello dati e UI per `quotes`
+- configurazioni per progetto su listini e intake
+
+Questa fase non faceva parte dell'obiettivo iniziale `CIS 1.0`, ma nasce dall'evoluzione verso gestione commerciale piu completa.
+
+## Roadmap aggiornata per chiudere CIS 1.0
+
+Ordine pragmatico consigliato:
+
+1. chiudere `WB3 Strategy Builder` in forma minima e leggibile
+2. chiudere `WB5 Follow-up Planner` in forma minima e leggibile
+3. rendere `relationship_memory` esplicita e consultabile
+4. fare un passaggio breve ma intenzionale su UX, logging e error handling
+5. scrivere un piano `PHASE2_LLM` che distingua bene cosa resta locale e cosa puo usare cloud
+
+## Punto di uscita da CIS 1.0
+
+`CIS 1.0` puo considerarsi completato quando saranno vere queste condizioni:
+
+1. il flusso discovery -> import -> arricchimento -> qualificazione -> strategy -> bozza -> follow-up e coperto almeno in forma minima
+2. ogni passaggio resta tracciabile e approvato dall'umano
+3. le note relazionali non vivono solo in testo libero ma in una memoria commerciale piu leggibile
+4. la documentazione distingue chiaramente MVP chiuso e fase successiva
+
+Da qui in poi il progetto puo passare in modo ordinato a `CIS 2.0`.
 
 ## Checklist numerata
 

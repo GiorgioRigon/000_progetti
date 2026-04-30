@@ -282,10 +282,10 @@ def _build_saluto(
     saluto_title = _extract_contact_note_value(contact_notes, "Titolo saluto:")
     if saluto_title and contact_last_name:
         return f"Buongiorno {saluto_title} {contact_last_name},"
-    if contact_full_name:
-        return f"Buongiorno {contact_full_name},"
     if contact_first_name:
         return f"Buongiorno {contact_first_name},"
+    if contact_full_name:
+        return f"Buongiorno {contact_full_name},"
     return "Buongiorno,"
 
 

@@ -16,7 +16,7 @@ from app.workbot_profiles import load_workbot_profile, load_workbot_profiles  # 
 class WorkbotProfilesTests(unittest.TestCase):
     def test_load_existing_project_profiles(self) -> None:
         profiles = load_workbot_profiles("melodema", BASE_DIR / "projects")
-        self.assertEqual(profiles["profile_name"], "Melodema base")
+        self.assertEqual(profiles["profile_name"], "Melodema profilo operativo v1")
 
         wb1_profile = load_workbot_profile("ethics", "wb1", BASE_DIR / "projects")
         self.assertIn("HR manager o HR director", wb1_profile["priority_roles"])

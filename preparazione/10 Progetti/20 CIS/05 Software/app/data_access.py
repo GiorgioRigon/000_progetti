@@ -78,6 +78,16 @@ class MessageCreate:
 
 
 @dataclass(slots=True)
+class RelationshipMemoryCreate:
+    organization_id: int
+    memory_type: str
+    content: str
+    contact_id: int | None = None
+    importance: int = 1
+    source: str | None = None
+
+
+@dataclass(slots=True)
 class QuoteIntakeCreate:
     project_key: str
     organization_id: int
@@ -460,6 +470,47 @@ class MessageRepository:
                 ON contacts.id = messages.contact_id
             WHERE messages.organization_id = ?
             ORDER BY messages.created_at DESC, messages.id DESC
+        """
+        with self.database.connect() as connection:
+            rows = connection.execute(query, (organization_id,)).fetchall()
+        return [dict(row) for row in rows]
+
+
+class RelationshipMemoryRepository:
+    def __init__(self, database: Database) -> None:
+        self.database = database
+
+    def create(self, memory: RelationshipMemoryCreate) -> int:
+        query = """
+            INSERT INTO relationship_memory (
+                organization_id, contact_id, memory_type, content, importance, source
+            )
+            VALUES (?, ?, ?, ?, ?, ?)
+        """
+        values = (
+            memory.organization_id,
+            memory.contact_id,
+            memory.memory_type,
+            memory.content,
+            memory.importance,
+            memory.source,
+        )
+        with self.database.connect() as connection:
+            cursor = connection.execute(query, values)
+            connection.commit()
+            return int(cursor.lastrowid)
+
+    def list_by_organization(self, organization_id: int) -> list[dict[str, Any]]:
+        query = """
+            SELECT
+                relationship_memory.*,
+                contacts.full_name AS contact_full_name,
+                contacts.role AS contact_role
+            FROM relationship_memory
+            LEFT JOIN contacts
+                ON contacts.id = relationship_memory.contact_id
+            WHERE relationship_memory.organization_id = ?
+            ORDER BY relationship_memory.importance DESC, relationship_memory.created_at DESC, relationship_memory.id DESC
         """
         with self.database.connect() as connection:
             rows = connection.execute(query, (organization_id,)).fetchall()

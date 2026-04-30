@@ -26,6 +26,14 @@ from app.data_access import (
     OrganizationRepository,
     OutreachActionCreate,
     OutreachActionRepository,
+    RelationshipMemoryCreate,
+    RelationshipMemoryRepository,
+)
+from app.followup_planner import (
+    build_followup_note,
+    extract_followup_data,
+    merge_followup_notes,
+    suggest_followup,
 )
 from app.lead_qualification import (
     build_qualification_note,
@@ -37,6 +45,12 @@ from app.outreach_drafter import (
     build_outreach_draft,
     list_outreach_templates,
     suggest_outreach_template,
+)
+from app.strategy_builder import (
+    build_strategy_note,
+    extract_strategy_data,
+    merge_strategy_notes,
+    suggest_strategy,
 )
 from app.quotations import (
     build_intake_initial_data,
@@ -97,6 +111,7 @@ def create_app(
     contacts = ContactRepository(database)
     outreach_actions = OutreachActionRepository(database)
     messages = MessageRepository(database)
+    relationship_memory = RelationshipMemoryRepository(database)
     quote_intakes = QuoteIntakeRepository(database)
     quotes = QuoteRepository(database)
     quote_line_items = QuoteLineItemRepository(database)
@@ -918,6 +933,7 @@ def create_app(
         organization_quotes = quotes.list_by_organization(organization_id)
         organization_contacts = contacts.list_by_organization(organization_id)
         organization_messages = messages.list_by_organization(organization_id)
+        organization_relationship_memory = relationship_memory.list_by_organization(organization_id)
         available_outreach_templates = list_outreach_templates(
             str(organization.get("project_key") or get_active_project_key()),
             app.config["PROJECTS_ROOT"],
@@ -934,6 +950,8 @@ def create_app(
             selected_template_name,
             available_outreach_templates,
         )
+        strategy_data = extract_strategy_data(organization.get("notes"))
+        followup_data = extract_followup_data(organization.get("notes"))
 
         if request.method == "POST":
             form_type = request.form.get("form_type", "organization")
@@ -1181,6 +1199,147 @@ def create_app(
                         extra={"organization_id": organization_id},
                     )
                     flash("Qualificazione lead aggiornata correttamente.", "success")
+            elif form_type == "wb3_strategy":
+                strategy_note = build_strategy_note(
+                    channel=request.form.get("channel", ""),
+                    channel_reason=request.form.get("channel_reason", ""),
+                    commercial_angle=request.form.get("commercial_angle", ""),
+                    caution_note=request.form.get("caution_note", ""),
+                    next_step=request.form.get("next_step", ""),
+                )
+
+                if not strategy_note:
+                    flash("Inserisci almeno un dato di strategia WB3.", "error")
+                    return redirect(url_for("organization_detail", organization_id=organization_id))
+
+                try:
+                    organizations.update(
+                        organization_id,
+                        OrganizationCreate(
+                            name=str(organization["name"]),
+                            project_key=str(organization.get("project_key", "melodema")),
+                            campaign_id=organization["campaign_id"],
+                            organization_type=organization["organization_type"],
+                            sector=organization["sector"],
+                            city=organization["city"],
+                            region=organization["region"],
+                            country=organization["country"],
+                            website=organization["website"],
+                            phone=organization["phone"],
+                            email=organization["email"],
+                            employee_count=organization["employee_count"],
+                            source=organization["source"],
+                            notes=merge_strategy_notes(
+                                existing_notes=organization["notes"],
+                                strategy_note=strategy_note,
+                            ),
+                        ),
+                    )
+                except Exception:
+                    app.logger.exception(
+                        "Failed to save WB3 strategy",
+                        extra={"organization_id": organization_id},
+                    )
+                    flash("Non e stato possibile salvare la strategia WB3.", "error")
+                else:
+                    app.logger.info(
+                        "WB3 strategy saved",
+                        extra={"organization_id": organization_id},
+                    )
+                    flash("WB3 aggiornato correttamente.", "success")
+            elif form_type == "wb5_followup":
+                followup_note = build_followup_note(
+                    followup_window=request.form.get("followup_window", ""),
+                    channel=request.form.get("channel", ""),
+                    micro_script=request.form.get("micro_script", ""),
+                    reason=request.form.get("reason", ""),
+                    next_status=request.form.get("next_status", ""),
+                )
+
+                if not followup_note:
+                    flash("Inserisci almeno un dato di follow-up WB5.", "error")
+                    return redirect(url_for("organization_detail", organization_id=organization_id))
+
+                try:
+                    organizations.update(
+                        organization_id,
+                        OrganizationCreate(
+                            name=str(organization["name"]),
+                            project_key=str(organization.get("project_key", "melodema")),
+                            campaign_id=organization["campaign_id"],
+                            organization_type=organization["organization_type"],
+                            sector=organization["sector"],
+                            city=organization["city"],
+                            region=organization["region"],
+                            country=organization["country"],
+                            website=organization["website"],
+                            phone=organization["phone"],
+                            email=organization["email"],
+                            employee_count=organization["employee_count"],
+                            source=organization["source"],
+                            notes=merge_followup_notes(
+                                existing_notes=organization["notes"],
+                                followup_note=followup_note,
+                            ),
+                        ),
+                    )
+                except Exception:
+                    app.logger.exception(
+                        "Failed to save WB5 follow-up",
+                        extra={"organization_id": organization_id},
+                    )
+                    flash("Non e stato possibile salvare il follow-up WB5.", "error")
+                else:
+                    app.logger.info(
+                        "WB5 follow-up saved",
+                        extra={"organization_id": organization_id},
+                    )
+                    flash("WB5 aggiornato correttamente.", "success")
+            elif form_type == "relationship_memory":
+                memory_type = request.form.get("memory_type", "").strip()
+                content = request.form.get("content", "").strip()
+                importance_raw = request.form.get("importance", "").strip()
+                source = request.form.get("source", "").strip() or None
+                contact_id = _parse_optional_contact_id(
+                    request.form.get("contact_id", ""),
+                    organization_contacts,
+                )
+
+                if not memory_type or not content:
+                    flash("Inserisci almeno tipo memoria e contenuto.", "error")
+                    return redirect(url_for("organization_detail", organization_id=organization_id))
+
+                try:
+                    importance = int(importance_raw) if importance_raw else 1
+                except ValueError:
+                    abort(400, description="Importanza relationship memory non valida.")
+
+                if importance < 1:
+                    abort(400, description="Importanza relationship memory non valida.")
+
+                try:
+                    relationship_memory.create(
+                        RelationshipMemoryCreate(
+                            organization_id=organization_id,
+                            contact_id=contact_id,
+                            memory_type=memory_type,
+                            content=content,
+                            importance=importance,
+                            source=source,
+                        )
+                    )
+                except Exception:
+                    app.logger.exception(
+                        "Failed to save relationship memory",
+                        extra={"organization_id": organization_id},
+                    )
+                    flash("Non e stato possibile salvare la relationship memory.", "error")
+                else:
+                    app.logger.info(
+                        "Relationship memory saved",
+                        extra={"organization_id": organization_id},
+                    )
+                    flash("Relationship memory aggiornata correttamente.", "success")
             elif form_type == "outreach_draft":
                 selected_contact_id = _parse_optional_contact_id(
                     request.form.get("contact_id", ""),
@@ -1256,7 +1415,10 @@ def create_app(
                 organization = organizations.get(organization_id)
                 organization_contacts = contacts.list_by_organization(organization_id)
                 organization_messages = messages.list_by_organization(organization_id)
+                organization_relationship_memory = relationship_memory.list_by_organization(organization_id)
                 qualification_data = extract_qualification_data(organization.get("notes"))
+                strategy_data = extract_strategy_data(organization.get("notes"))
+                followup_data = extract_followup_data(organization.get("notes"))
                 wb1_profile = load_workbot_profile(
                     get_active_project_key(),
                     "wb1",
@@ -1322,10 +1484,13 @@ def create_app(
                     suggested_template=suggested_template,
                     selected_template_metadata=selected_template_metadata,
                     outreach_history=organization_messages,
+                    relationship_memory_items=organization_relationship_memory,
                     outreach_form_data=outreach_form_data,
                     outreach_template_error=outreach_template_error,
                     outreach_template_path=outreach_template_path,
                     qualification_data=qualification_data,
+                    strategy_data=strategy_data,
+                    followup_data=followup_data,
                     wb1_profile=wb1_profile,
                     wb1_prompt_preview=wb1_prompt_preview,
                     wb1_form_data=wb1_form_data,
@@ -1344,7 +1509,23 @@ def create_app(
         organization = organizations.get(organization_id)
         organization_contacts = contacts.list_by_organization(organization_id)
         organization_messages = messages.list_by_organization(organization_id)
+        organization_relationship_memory = relationship_memory.list_by_organization(organization_id)
         qualification_data = extract_qualification_data(organization.get("notes"))
+        strategy_data = extract_strategy_data(organization.get("notes"))
+        if not any(strategy_data.values()):
+            strategy_data = suggest_strategy(
+                organization=organization,
+                contacts=organization_contacts,
+                qualification_data=qualification_data,
+            )
+        followup_data = extract_followup_data(organization.get("notes"))
+        if not any(followup_data.values()):
+            followup_data = suggest_followup(
+                organization=organization,
+                qualification_data=qualification_data,
+                strategy_data=strategy_data,
+                outreach_history=organization_messages,
+            )
         wb1_profile = load_workbot_profile(
             get_active_project_key(),
             "wb1",
@@ -1411,10 +1592,13 @@ def create_app(
             suggested_template=suggested_template,
             selected_template_metadata=selected_template_metadata,
             outreach_history=organization_messages,
+            relationship_memory_items=organization_relationship_memory,
             outreach_form_data=outreach_form_data,
             outreach_template_error=outreach_template_error,
             outreach_template_path=outreach_template_path,
             qualification_data=qualification_data,
+            strategy_data=strategy_data,
+            followup_data=followup_data,
             wb1_profile=wb1_profile,
             wb1_prompt_preview=wb1_prompt_preview,
             wb1_form_data=wb1_form_data,

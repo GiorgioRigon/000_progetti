@@ -4,6 +4,8 @@
 {% block body_class %}operational-page{% endblock %}
 
 {% block content %}
+  {% set strategy = strategy_data | default({}, true) %}
+  {% set followup = followup_data | default({}, true) %}
   <section class="page-heading">
     <div>
       <p class="eyebrow">Organization detail</p>
@@ -242,6 +244,209 @@
         </dl>
       {% else %}
         <p class="muted">Nessuna qualificazione lead salvata.</p>
+      {% endif %}
+    </section>
+  </section>
+
+  <section class="grid-two">
+    <section class="card">
+      <h2>WB3 Strategy Builder</h2>
+      <p class="muted">
+        Prototipo minimo per suggerire come aprire il contatto. In `CIS 1.0` resta una strategia guidata, semplice e modificabile.
+      </p>
+      <form class="stack" method="post" action="/organizations/{{ organization.id }}">
+        <input type="hidden" name="form_type" value="wb3_strategy">
+
+        <label for="wb3_channel">Canale consigliato</label>
+        <select id="wb3_channel" name="channel">
+          {% for option in ["", "email_diretta", "email_generale", "email_generale_più_telefonata", "telefonata", "linkedin", "ricerca_aggiuntiva"] %}
+            <option value="{{ option }}" {% if strategy.get("channel", "") == option %}selected{% endif %}>{{ option or "non indicato" }}</option>
+          {% endfor %}
+        </select>
+
+        <label for="wb3_channel_reason">Motivo del canale</label>
+        <textarea id="wb3_channel_reason" name="channel_reason" rows="3">{{ strategy.get("channel_reason", "") }}</textarea>
+
+        <label for="wb3_commercial_angle">Angolo commerciale</label>
+        <textarea id="wb3_commercial_angle" name="commercial_angle" rows="4">{{ strategy.get("commercial_angle", "") }}</textarea>
+
+        <label for="wb3_caution_note">Rischio o cautela</label>
+        <textarea id="wb3_caution_note" name="caution_note" rows="3">{{ strategy.get("caution_note", "") }}</textarea>
+
+        <label for="wb3_next_step">Prossimo passo consigliato</label>
+        <textarea id="wb3_next_step" name="next_step" rows="3">{{ strategy.get("next_step", "") }}</textarea>
+
+        <button type="submit">Salva WB3</button>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Strategia corrente</h2>
+      {% if strategy.get("channel") or strategy.get("channel_reason") or strategy.get("commercial_angle") or strategy.get("caution_note") or strategy.get("next_step") %}
+        <dl class="detail-grid">
+          <div>
+            <dt>Canale</dt>
+            <dd>{{ strategy.get("channel", "") or "-" }}</dd>
+          </div>
+          <div class="detail-span">
+            <dt>Motivo canale</dt>
+            <dd>{{ strategy.get("channel_reason", "") or "-" }}</dd>
+          </div>
+          <div class="detail-span">
+            <dt>Angolo commerciale</dt>
+            <dd>{{ strategy.get("commercial_angle", "") or "-" }}</dd>
+          </div>
+          <div class="detail-span">
+            <dt>Cautela</dt>
+            <dd>{{ strategy.get("caution_note", "") or "-" }}</dd>
+          </div>
+          <div class="detail-span">
+            <dt>Prossimo passo</dt>
+            <dd>{{ strategy.get("next_step", "") or "-" }}</dd>
+          </div>
+        </dl>
+      {% else %}
+        <p class="muted">Nessuna strategia WB3 salvata.</p>
+      {% endif %}
+    </section>
+  </section>
+
+  <section class="grid-two">
+    <section class="card">
+      <h2>Relationship Memory</h2>
+      <p class="muted">
+        Memoria commerciale minima ma separata dalle note generiche. Serve a conservare preferenze, esiti e segnali utili ai prossimi passaggi.
+      </p>
+      <form class="stack" method="post" action="/organizations/{{ organization.id }}">
+        <input type="hidden" name="form_type" value="relationship_memory">
+
+        <label for="relationship_memory_type">Tipo memoria</label>
+        <select id="relationship_memory_type" name="memory_type">
+          {% for option in ["channel_preference", "tone_caution", "contact_outcome", "last_step", "next_step", "commercial_note"] %}
+            <option value="{{ option }}">{{ option }}</option>
+          {% endfor %}
+        </select>
+
+        <label for="relationship_memory_contact_id">Contatto collegato</label>
+        <select id="relationship_memory_contact_id" name="contact_id">
+          <option value="">Nessun contatto specifico</option>
+          {% for contact in contacts %}
+            {% set contact_label = contact.full_name or ((contact.first_name or "") ~ " " ~ (contact.last_name or "")).strip() %}
+            <option value="{{ contact.id }}">
+              {{ contact_label or "Contatto senza nome" }}{% if contact.role %} | {{ contact.role }}{% endif %}
+            </option>
+          {% endfor %}
+        </select>
+
+        <label for="relationship_memory_content">Contenuto</label>
+        <textarea id="relationship_memory_content" name="content" rows="4" placeholder="Es. preferisce primo contatto via email breve, risposta prudente, richiamare dopo audit, evitare tono troppo consulenziale."></textarea>
+
+        <div class="grid-two compact">
+          <div>
+            <label for="relationship_memory_importance">Importanza</label>
+            <select id="relationship_memory_importance" name="importance">
+              {% for option in ["1", "2", "3"] %}
+                <option value="{{ option }}" {% if option == "1" %}selected{% endif %}>{{ option }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label for="relationship_memory_source">Fonte</label>
+            <input id="relationship_memory_source" name="source" type="text" placeholder="Es. telefonata, verifica manuale, email, nota interna">
+          </div>
+        </div>
+
+        <button type="submit">Salva memory</button>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Memoria corrente</h2>
+      {% if relationship_memory_items %}
+        <div class="stack">
+          {% for item in relationship_memory_items %}
+            <article class="subcard stack">
+              <div>
+                <h3>{{ item.memory_type }}</h3>
+                <p class="muted">
+                  importanza {{ item.importance }}
+                  {% if item.contact_full_name %} | {{ item.contact_full_name }}{% endif %}
+                  {% if item.source %} | fonte: {{ item.source }}{% endif %}
+                </p>
+              </div>
+              <p class="note-box">{{ item.content }}</p>
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="muted">Nessuna relationship memory salvata.</p>
+      {% endif %}
+    </section>
+  </section>
+
+  <section class="grid-two">
+    <section class="card">
+      <h2>WB5 Follow-up Planner</h2>
+      <p class="muted">
+        Prototipo minimo per suggerire il ricontatto successivo. In `CIS 1.0` resta un piano leggero, modificabile e senza automazioni.
+      </p>
+      <form class="stack" method="post" action="/organizations/{{ organization.id }}">
+        <input type="hidden" name="form_type" value="wb5_followup">
+
+        <label for="wb5_followup_window">Finestra follow-up</label>
+        <input id="wb5_followup_window" name="followup_window" type="text" value="{{ followup.get("followup_window", "") }}" placeholder="Es. 24-72 ore, 3-5 giorni lavorativi">
+
+        <label for="wb5_channel">Canale consigliato</label>
+        <select id="wb5_channel" name="channel">
+          {% for option in ["", "telefonata", "email_breve", "telefonata_o_email_breve", "linkedin", "preparare_primo_contatto"] %}
+            <option value="{{ option }}" {% if followup.get("channel", "") == option %}selected{% endif %}>{{ option or "non indicato" }}</option>
+          {% endfor %}
+        </select>
+
+        <label for="wb5_micro_script">Micro-script</label>
+        <textarea id="wb5_micro_script" name="micro_script" rows="3">{{ followup.get("micro_script", "") }}</textarea>
+
+        <label for="wb5_reason">Motivo del follow-up</label>
+        <textarea id="wb5_reason" name="reason" rows="3">{{ followup.get("reason", "") }}</textarea>
+
+        <label for="wb5_next_status">Stato operativo successivo</label>
+        <select id="wb5_next_status" name="next_status">
+          {% for option in ["", "da_preparare", "da_contattare", "da_instradare", "attesa_riscontro", "da_rivalutare"] %}
+            <option value="{{ option }}" {% if followup.get("next_status", "") == option %}selected{% endif %}>{{ option or "non indicato" }}</option>
+          {% endfor %}
+        </select>
+
+        <button type="submit">Salva WB5</button>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Follow-up corrente</h2>
+      {% if followup.get("followup_window") or followup.get("channel") or followup.get("micro_script") or followup.get("reason") or followup.get("next_status") %}
+        <dl class="detail-grid">
+          <div>
+            <dt>Finestra</dt>
+            <dd>{{ followup.get("followup_window", "") or "-" }}</dd>
+          </div>
+          <div>
+            <dt>Canale</dt>
+            <dd>{{ followup.get("channel", "") or "-" }}</dd>
+          </div>
+          <div class="detail-span">
+            <dt>Micro-script</dt>
+            <dd>{{ followup.get("micro_script", "") or "-" }}</dd>
+          </div>
+          <div class="detail-span">
+            <dt>Motivo</dt>
+            <dd>{{ followup.get("reason", "") or "-" }}</dd>
+          </div>
+          <div class="detail-span">
+            <dt>Stato successivo</dt>
+            <dd>{{ followup.get("next_status", "") or "-" }}</dd>
+          </div>
+        </dl>
+      {% else %}
+        <p class="muted">Nessun follow-up WB5 salvato.</p>
       {% endif %}
     </section>
   </section>
