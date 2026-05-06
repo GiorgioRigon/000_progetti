@@ -88,6 +88,34 @@ class RelationshipMemoryCreate:
 
 
 @dataclass(slots=True)
+class AgentRunCreate:
+    project_key: str
+    agent_key: str
+    title: str
+    objective: str | None = None
+    status: str = "queued"
+    source_type: str | None = None
+    source_ref: str | None = None
+    input_payload: dict[str, Any] | None = None
+    output_payload: dict[str, Any] | None = None
+    cost_estimate: float = 0.0
+
+
+@dataclass(slots=True)
+class AgentTaskCreate:
+    run_id: int
+    task_key: str
+    task_type: str
+    title: str
+    organization_id: int | None = None
+    status: str = "queued"
+    input_payload: dict[str, Any] | None = None
+    result_payload: dict[str, Any] | None = None
+    review_notes: str | None = None
+    sort_order: int = 0
+
+
+@dataclass(slots=True)
 class QuoteIntakeCreate:
     project_key: str
     organization_id: int
@@ -515,6 +543,222 @@ class RelationshipMemoryRepository:
         with self.database.connect() as connection:
             rows = connection.execute(query, (organization_id,)).fetchall()
         return [dict(row) for row in rows]
+
+
+class AgentRunRepository:
+    def __init__(self, database: Database) -> None:
+        self.database = database
+
+    def create(self, run: AgentRunCreate) -> int:
+        query = """
+            INSERT INTO agent_runs (
+                project_key, agent_key, title, status, objective, source_type, source_ref,
+                input_payload_json, output_payload_json, cost_estimate
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """
+        values = (
+            run.project_key,
+            run.agent_key,
+            run.title,
+            run.status,
+            run.objective,
+            run.source_type,
+            run.source_ref,
+            json.dumps(run.input_payload or {}, ensure_ascii=True),
+            json.dumps(run.output_payload or {}, ensure_ascii=True),
+            run.cost_estimate,
+        )
+        with self.database.connect() as connection:
+            cursor = connection.execute(query, values)
+            connection.commit()
+            return int(cursor.lastrowid)
+
+    def get(self, run_id: int) -> dict[str, Any] | None:
+        query = "SELECT * FROM agent_runs WHERE id = ?"
+        with self.database.connect() as connection:
+            row = connection.execute(query, (run_id,)).fetchone()
+        if row is None:
+            return None
+        payload = dict(row)
+        payload["input_payload"] = _load_json_object(payload.get("input_payload_json"))
+        payload["output_payload"] = _load_json_object(payload.get("output_payload_json"))
+        return payload
+
+    def list_by_project(self, project_key: str) -> list[dict[str, Any]]:
+        query = """
+            SELECT
+                agent_runs.*,
+                COUNT(agent_tasks.id) AS task_count,
+                SUM(CASE WHEN agent_tasks.status = 'queued' THEN 1 ELSE 0 END) AS queued_count,
+                SUM(CASE WHEN agent_tasks.status = 'review' THEN 1 ELSE 0 END) AS review_count,
+                SUM(CASE WHEN agent_tasks.status = 'approved' THEN 1 ELSE 0 END) AS approved_count,
+                SUM(CASE WHEN agent_tasks.status = 'rejected' THEN 1 ELSE 0 END) AS rejected_count,
+                SUM(CASE WHEN agent_tasks.status = 'imported' THEN 1 ELSE 0 END) AS imported_count,
+                SUM(CASE WHEN agent_tasks.status = 'archived' THEN 1 ELSE 0 END) AS archived_count
+            FROM agent_runs
+            LEFT JOIN agent_tasks ON agent_tasks.run_id = agent_runs.id
+            WHERE agent_runs.project_key = ?
+            GROUP BY agent_runs.id
+            ORDER BY agent_runs.created_at DESC, agent_runs.id DESC
+        """
+        with self.database.connect() as connection:
+            rows = connection.execute(query, (project_key,)).fetchall()
+        payloads = [dict(row) for row in rows]
+        for payload in payloads:
+            payload["input_payload"] = _load_json_object(payload.get("input_payload_json"))
+            payload["output_payload"] = _load_json_object(payload.get("output_payload_json"))
+        return payloads
+
+    def update(
+        self,
+        run_id: int,
+        *,
+        status: str,
+        output_payload: dict[str, Any] | None = None,
+        cost_estimate: float | None = None,
+    ) -> None:
+        current = self.get(run_id)
+        if current is None:
+            raise ValueError(f"Agent run {run_id} not found.")
+        query = """
+            UPDATE agent_runs
+            SET
+                status = ?,
+                output_payload_json = ?,
+                cost_estimate = ?,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+        """
+        with self.database.connect() as connection:
+            connection.execute(
+                query,
+                (
+                    status,
+                    json.dumps(output_payload if output_payload is not None else current.get("output_payload", {}), ensure_ascii=True),
+                    cost_estimate if cost_estimate is not None else float(current.get("cost_estimate", 0) or 0),
+                    run_id,
+                ),
+            )
+            connection.commit()
+
+
+class AgentTaskRepository:
+    def __init__(self, database: Database) -> None:
+        self.database = database
+
+    def create_many(self, tasks: list[AgentTaskCreate]) -> list[int]:
+        query = """
+            INSERT INTO agent_tasks (
+                run_id, organization_id, task_key, task_type, status, title,
+                input_payload_json, result_payload_json, review_notes, sort_order
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """
+        task_ids: list[int] = []
+        with self.database.connect() as connection:
+            for task in tasks:
+                cursor = connection.execute(
+                    query,
+                    (
+                        task.run_id,
+                        task.organization_id,
+                        task.task_key,
+                        task.task_type,
+                        task.status,
+                        task.title,
+                        json.dumps(task.input_payload or {}, ensure_ascii=True),
+                        json.dumps(task.result_payload or {}, ensure_ascii=True),
+                        task.review_notes,
+                        task.sort_order,
+                    ),
+                )
+                task_ids.append(int(cursor.lastrowid))
+            connection.commit()
+        return task_ids
+
+    def get(self, task_id: int) -> dict[str, Any] | None:
+        query = """
+            SELECT
+                agent_tasks.*,
+                agent_runs.project_key,
+                agent_runs.agent_key,
+                organizations.name AS organization_name
+            FROM agent_tasks
+            JOIN agent_runs ON agent_runs.id = agent_tasks.run_id
+            LEFT JOIN organizations ON organizations.id = agent_tasks.organization_id
+            WHERE agent_tasks.id = ?
+        """
+        with self.database.connect() as connection:
+            row = connection.execute(query, (task_id,)).fetchone()
+        if row is None:
+            return None
+        payload = dict(row)
+        payload["input_payload"] = _load_json_object(payload.get("input_payload_json"))
+        payload["result_payload"] = _load_json_object(payload.get("result_payload_json"))
+        return payload
+
+    def list_by_run(self, run_id: int) -> list[dict[str, Any]]:
+        query = """
+            SELECT
+                agent_tasks.*,
+                organizations.name AS organization_name
+            FROM agent_tasks
+            LEFT JOIN organizations ON organizations.id = agent_tasks.organization_id
+            WHERE agent_tasks.run_id = ?
+            ORDER BY agent_tasks.sort_order ASC, agent_tasks.id ASC
+        """
+        with self.database.connect() as connection:
+            rows = connection.execute(query, (run_id,)).fetchall()
+        payloads = [dict(row) for row in rows]
+        for payload in payloads:
+            payload["input_payload"] = _load_json_object(payload.get("input_payload_json"))
+            payload["result_payload"] = _load_json_object(payload.get("result_payload_json"))
+        return payloads
+
+    def update(
+        self,
+        task_id: int,
+        *,
+        status: str,
+        review_notes: str | None = None,
+        result_payload: dict[str, Any] | None = None,
+    ) -> None:
+        current = self.get(task_id)
+        if current is None:
+            raise ValueError(f"Agent task {task_id} not found.")
+        query = """
+            UPDATE agent_tasks
+            SET
+                status = ?,
+                review_notes = ?,
+                result_payload_json = ?,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+        """
+        with self.database.connect() as connection:
+            connection.execute(
+                query,
+                (
+                    status,
+                    review_notes if review_notes is not None else current.get("review_notes"),
+                    json.dumps(result_payload if result_payload is not None else current.get("result_payload", {}), ensure_ascii=True),
+                    task_id,
+                ),
+            )
+            connection.commit()
+
+    def bulk_update_status(self, run_id: int, from_status: str, to_status: str) -> None:
+        query = """
+            UPDATE agent_tasks
+            SET
+                status = ?,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE run_id = ? AND status = ?
+        """
+        with self.database.connect() as connection:
+            connection.execute(query, (to_status, run_id, from_status))
+            connection.commit()
 
 
 class QuoteIntakeRepository:

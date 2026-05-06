@@ -46,3 +46,16 @@ templates:
       - fase:rinnovo
       - tono:pratico
       - canale:email_fredda
+
+  - filename: first_cold_local_gentle.md
+    label: Prima mail locale gentile
+    description: Prima mail piu morbida e prudente, adatta a realta locali gia organizzate dove conviene evitare toni troppo assertivi o troppo corporate.
+    tags:
+      - destinatario:hr
+      - destinatario:generale
+      - destinatario:direzione
+      - azienda:locale
+      - azienda:strutturata
+      - fase:rinnovo
+      - tono:insieme
+      - canale:email_fredda

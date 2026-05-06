@@ -11,6 +11,7 @@ from app.workbot_profiles import normalize_profile_list, normalize_profile_text
 
 DEFAULT_PROJECT_KEY = "melodema"
 MAX_RUN_GOAL_SLUG_LENGTH = 80
+MAX_QUERY_PACK_SIZE = 12
 
 
 @dataclass(slots=True)
@@ -372,6 +373,56 @@ def build_prompt_preview(
         ]
     )
     return "\n".join(lines)
+
+
+def build_search_query_pack(
+    research_goal: str,
+    territory_target: str,
+    target_types_text: str,
+    selected_sources: list[str],
+    research_prompt: str,
+    prompt_variants_text: str,
+    inclusion_criteria_text: str,
+) -> list[str]:
+    target_types = parse_multiline_field(target_types_text)
+    prompt_variants = parse_multiline_field(prompt_variants_text)
+    inclusion_criteria = parse_multiline_field(inclusion_criteria_text)
+    normalized_sources = [source.strip() for source in selected_sources if source.strip()]
+
+    queries: list[str] = []
+    if research_prompt.strip():
+        queries.append(research_prompt.strip())
+
+    for variant in prompt_variants:
+        queries.append(variant)
+
+    first_inclusion = inclusion_criteria[0] if inclusion_criteria else ""
+    for target_type in target_types[:4]:
+        if territory_target.strip():
+            queries.append(f"{target_type} {territory_target.strip()} {research_goal.strip()}".strip())
+        if first_inclusion:
+            queries.append(f"{target_type} {territory_target.strip()} {first_inclusion}".strip())
+
+    for source_name in normalized_sources[:4]:
+        if research_goal.strip():
+            queries.append(f"site search {source_name} {research_goal.strip()}".strip())
+        if target_types:
+            queries.append(f"site search {source_name} {target_types[0]} {territory_target.strip()}".strip())
+
+    deduplicated_queries: list[str] = []
+    seen: set[str] = set()
+    for query in queries:
+        normalized_query = " ".join(query.split())
+        if not normalized_query:
+            continue
+        if normalized_query.casefold() in seen:
+            continue
+        seen.add(normalized_query.casefold())
+        deduplicated_queries.append(normalized_query)
+        if len(deduplicated_queries) >= MAX_QUERY_PACK_SIZE:
+            break
+
+    return deduplicated_queries
 
 
 def load_project_sources(project_key: str, projects_root: Path | str) -> list[dict[str, str | bool]]:

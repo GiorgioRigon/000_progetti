@@ -118,6 +118,21 @@
         <p class="muted">Compila il brief per vedere l'anteprima del prompt.</p>
       {% endif %}
 
+      <h2>Pacchetto query suggerite</h2>
+      <p class="muted">
+        Primo passo per usare meglio `WB0`: prima definisci la missione, poi esegui la ricerca fuori dal CIS, poi riporti dentro solo i candidati che meritano review.
+      </p>
+      {% if search_query_pack %}
+        <ol class="plain-list">
+          {% for item in search_query_pack %}
+            <li><code>{{ item }}</code></li>
+          {% endfor %}
+        </ol>
+        <p class="muted">Usa queste query come base, correggile se necessario e salva le varianti che hanno funzionato meglio.</p>
+      {% else %}
+        <p class="muted">Compila obiettivo, territorio, target, fonti e criteri per ottenere un primo pacchetto query.</p>
+      {% endif %}
+
       <h2>Output riusabile</h2>
       {% if latest_output_path %}
         <p><strong>Ultimo file JSON:</strong><br>{{ latest_output_path }}</p>

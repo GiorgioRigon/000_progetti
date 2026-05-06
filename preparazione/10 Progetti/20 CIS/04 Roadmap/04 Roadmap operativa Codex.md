@@ -4,7 +4,7 @@ type: roadmap
 project: CIS
 status: attivo
 created: 2026-03-14
-updated: 2026-04-30
+updated: 2026-05-04
 tags:
   - roadmap
   - codex
@@ -212,6 +212,20 @@ Ordine pragmatico consigliato:
 3. rendere `relationship_memory` esplicita e consultabile
 4. fare un passaggio breve ma intenzionale su UX, logging e error handling
 5. scrivere un piano `PHASE2_LLM` che distingua bene cosa resta locale e cosa puo usare cloud
+
+## Nota di riallineamento prima del CIS 2.0
+
+Durante l'uso del `CIS 1.0` e diventato chiaro un punto importante:
+
+- `WB0` nel `1.0` e utile, ma resta soprattutto un assistente per ricerca manuale e review
+- l'idea originaria dell'utente era piu forte: impostare criteri e lasciare a `WB0` il compito di aiutare davvero a trovare candidati sul web
+
+Quindi la prima priorita del `CIS 2.0` non deve essere solo "piu review", ma:
+
+- trasformare `WB0` in un workbot capace di partire da una missione di ricerca
+- generare query e task di ricerca riusabili
+- raccogliere evidenze e candidati in forma strutturata
+- lasciare all'umano la selezione finale e l'orchestrazione
 
 ## Punto di uscita da CIS 1.0
 

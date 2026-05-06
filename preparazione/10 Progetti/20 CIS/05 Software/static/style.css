@@ -371,3 +371,141 @@ code {
     padding: 0 0.85rem;
   }
 }
+
+.cis20-page {
+  line-height: 1.35;
+  background: #edf5ff;
+}
+
+.cis20-page a {
+  color: #0f4c81;
+}
+
+.cis20-page .site-header {
+  border-bottom-color: #3182ce;
+}
+
+.cis20-page .eyebrow {
+  margin-bottom: 0.25rem;
+  color: #3182ce;
+}
+
+.cis20-page main.shell {
+  padding-top: 1rem;
+  padding-bottom: 1.5rem;
+}
+
+.cis20-page h1,
+.cis20-page h2,
+.cis20-page h3,
+.cis20-page h4,
+.cis20-page p {
+  margin-top: 0;
+}
+
+.cis20-page .hero,
+.cis20-page .card,
+.cis20-page .summary-card,
+.cis20-page .subcard {
+  background: #f8fbff;
+  border-color: #c7dbf3;
+  box-shadow: 0 6px 18px rgba(15, 76, 129, 0.08);
+}
+
+.cis20-page .card,
+.cis20-page .subcard {
+  padding: 0.9rem 1rem;
+}
+
+.cis20-page .page-heading {
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+}
+
+.cis20-page .grid-two {
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+}
+
+.cis20-page .stack > * + * {
+  margin-top: 0.5rem;
+}
+
+.cis20-page .actions {
+  gap: 0.5rem;
+}
+
+.cis20-page .button,
+.cis20-page button {
+  padding: 0.5rem 0.8rem;
+  border-color: #0f4c81;
+  background: #0f4c81;
+}
+
+.cis20-page .button-secondary {
+  background: #fff;
+  color: #0f4c81;
+}
+
+.cis20-page label {
+  margin-bottom: 0.15rem;
+  font-size: 0.95rem;
+}
+
+.cis20-page fieldset {
+  padding: 0.6rem 0.75rem;
+  border-color: #b9d1eb;
+}
+
+.cis20-page input,
+.cis20-page textarea,
+.cis20-page select {
+  padding: 0.5rem 0.6rem;
+  border-color: #b9d1eb;
+  background: #ffffff;
+}
+
+.cis20-page .checkbox-row {
+  gap: 0.55rem;
+  margin-bottom: 0.45rem;
+}
+
+.cis20-page .prompt-preview,
+.cis20-page .note-box {
+  padding: 0.75rem;
+  background: #eef6ff;
+  border: 1px solid #c7dbf3;
+}
+
+.cis20-page code {
+  background: #e2eefb;
+}
+
+.cis20-page .list-row {
+  gap: 0.75rem;
+  padding: 0.65rem 0;
+  border-top-color: #d9e7f5;
+  align-items: start;
+}
+
+.cis20-page .detail-grid {
+  gap: 0.65rem;
+}
+
+.cis20-page .detail-grid dd {
+  margin-top: 0.1rem;
+}
+
+.cis20-page .muted {
+  color: #4f6780;
+}
+
+.cis20-page .flash-success {
+  background: #e8f4ff;
+  border-color: #a9caeb;
+}
+
+.cis20-page .flash-warning {
+  background: #eef6ff;
+  border-color: #b8d2ea;
+}

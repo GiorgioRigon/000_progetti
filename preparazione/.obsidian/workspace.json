@@ -4,95 +4,53 @@
     "type": "split",
     "children": [
       {
-        "id": "1836e4f71325a179",
+        "id": "b057abc3a92c7c4b",
         "type": "tabs",
         "children": [
           {
-            "id": "b3f5501bd6c6383f",
+            "id": "2762b2e2a90dd718",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "90 Archivio/Git e Obsidian.md",
+                "file": "10 Progetti/20 CIS/05 Software/docs/followup_scripts/INSIEME_PHONE_FOLLOWUP_2026-05-05.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Git e Obsidian"
+              "title": "INSIEME_PHONE_FOLLOWUP_2026-05-05"
             }
           },
           {
-            "id": "71637e45983cf99e",
+            "id": "cedf4106bf3e7f23",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "lancio app web.md",
+                "file": "260506  Secondo batch cold mail.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "lancio app web"
+              "title": "260506  Secondo batch cold mail"
             }
           },
           {
-            "id": "45a5888995150536",
+            "id": "c262293f56d8b2b0",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "10 Progetti/20 CIS/05 Software/docs/ETHICS_FIRST_FOLLOWUPS.md",
+                "file": "260506 Prompt Base WB2.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "ETHICS_FIRST_FOLLOWUPS"
-            }
-          },
-          {
-            "id": "8100ac3eedd0a257",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "10 Progetti/20 CIS/04 Roadmap/04 Roadmap operativa Codex.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "04 Roadmap operativa Codex"
-            }
-          },
-          {
-            "id": "4d4f82690b550f58",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "10 Progetti/20 CIS/04 Roadmap/04 Roadmap operativa Codex.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "04 Roadmap operativa Codex"
-            }
-          },
-          {
-            "id": "f52890f98657077b",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "260430 CIS 2.0.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "260430 CIS 2.0"
+              "title": "260506 Prompt Base WB2"
             }
           }
         ],
-        "currentTab": 5
+        "currentTab": 2
       }
     ],
     "direction": "vertical"
@@ -124,7 +82,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "idee",
+                "query": "CIS 2.0",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -239,23 +197,31 @@
       "obsidian-git:Open Git source control": false
     }
   },
-  "active": "f52890f98657077b",
+  "active": "c262293f56d8b2b0",
   "lastOpenFiles": [
-    "10 Progetti/20 CIS/05 Software/tests/__pycache__/test_workbot_profiles.cpython-310-pytest-9.0.3.pyc.2",
-    "10 Progetti/20 CIS/05 Software/app/__pycache__/outreach_drafter.cpython-310.pyc.132805440309008",
-    "10 Progetti/20 CIS/05 Software/tests/__pycache__/test_manual_flow.cpython-310-pytest-9.0.3.pyc.2",
-    "10 Progetti/20 CIS/05 Software/tests/__pycache__/test_relationship_memory.cpython-310-pytest-9.0.3.pyc",
-    "10 Progetti/20 CIS/05 Software/tests/__pycache__/test_relationship_memory.cpython-310-pytest-9.0.3.pyc.2",
-    "10 Progetti/20 CIS/05 Software/app/__pycache__/data_access.cpython-310.pyc.132345710130192",
-    "10 Progetti/20 CIS/05 Software/app/__pycache__/__init__.cpython-310.pyc.132345727627344",
-    "10 Progetti/20 CIS/05 Software/tests/test_relationship_memory.py",
-    "10 Progetti/20 CIS/05 Software/app/__pycache__/followup_planner.cpython-311.pyc",
-    "10 Progetti/20 CIS/05 Software/app/__pycache__/followup_planner.cpython-310.pyc",
-    "10 Progetti/20 CIS/05 Software/app/__pycache__/followup_planner.cpython-310.pyc.139204144427264",
+    "10 Progetti/20 CIS/05 Software/data/cis.sqlite3-journal",
+    "260506 Prompt Base WB2.md",
+    "260506  Secondo batch cold mail.md",
+    "10 Progetti/20 CIS/05 Software/tests/__pycache__/test_agent_runtime.cpython-310-pytest-9.0.3.pyc.2",
+    "10 Progetti/20 CIS/05 Software/app/__pycache__/__init__.cpython-310.pyc.140197567082576",
+    "10 Progetti/20 CIS/05 Software/app/__pycache__/__init__.cpython-310.pyc.132926823016176",
+    "10 Progetti/20 CIS/05 Software/app/__pycache__/wb2_enricher.cpython-310.pyc",
+    "10 Progetti/20 CIS/05 Software/app/__pycache__/wb2_enricher.cpython-310.pyc.130541455937008",
+    "10 Progetti/20 CIS/05 Software/app/__pycache__/agent_runtime.cpython-310.pyc.130541456567280",
+    "10 Progetti/20 CIS/05 Software/app/__pycache__/__init__.cpython-310.pyc.130541469771984",
+    "10 Progetti/20 CIS/05 Software/app/__pycache__/wb2_enricher.cpython-311.pyc",
+    "10 Progetti/20 CIS/05 Software/app/wb2_enricher.py",
+    "10 Progetti/20 CIS/05 Software/docs/followup_scripts/INSIEME_PHONE_FOLLOWUP_2026-05-05.md",
+    "10 Progetti/20 CIS/05 Software/projects/ethics/email_templates/first_cold_local_gentle.md",
+    "30 Risorse/2026-04-21_scheda_dati_preventivo_su_misura_pdr125_e_docs_e_kpi.md",
+    "269415 MU.BRE. Costruzioni.md",
+    "260430 CIS 2.0.md",
+    "10 Progetti/20 CIS/04 Roadmap/04 Roadmap operativa Codex.md",
+    "10 Progetti/20 CIS/05 Software/docs/followup_scripts/TONELLO_PHONE_FOLLOWUP_2026-05-04.md",
+    "10 Progetti/20 CIS/05 Software/docs/followup_scripts/BASTONE_PHONE_FOLLOWUP_2026-04-30.md",
+    "10 Progetti/20 CIS/05 Software/docs/followup_scripts/MUBRE_PHONE_FOLLOWUP_2026-05-04.md",
     "10 Progetti/20 CIS/04 Roadmap/260430 Micro-roadmap chiusura CIS 1.0.md",
     "lancio app web.md",
-    "10 Progetti/20 CIS/04 Roadmap/04 Roadmap operativa Codex.md",
-    "260430 CIS 2.0.md",
     "10 Progetti/20 CIS/05 Software/pytest-cache-files-s85__0dm/README.md",
     "10 Progetti/20 CIS/04 Roadmap/260425 Roadmap progetto Melodema.md",
     "10 Progetti/20 CIS/04 Roadmap/04 Roadmap.md",
@@ -264,19 +230,10 @@
     "10 Progetti/20 CIS/05 Software/docs/PREVENTIVI_MODULE_PROPOSAL.md",
     "260429 Scheda Info per preventivo.md",
     "10 Progetti/20 CIS/05 Software/docs/ETHICS_FIRST_FOLLOWUPS.md",
-    "30 Risorse/2026-04-21_scheda_dati_preventivo_su_misura_pdr125_e_docs_e_kpi.md",
     "260428 Creazione Mail Template.md",
     "10 Progetti/20 CIS/05 Software/projects/ethics/email_templates/first_cold_renewal_general_inbox.md",
     "10 Progetti/20 CIS/05 Software/projects/ethics/email_templates/first_cold_renewal_batch.md",
     "10 Progetti/20 CIS/05 Software/docs/Ethics_Logo.jpg",
-    "10 Progetti/20 CIS/05 Software/docs/ETHICS_EMAIL_SIGNATURE.md",
-    "10 Progetti/20 CIS/05 Software/docs/ETHICS_FIRST_BATCH_INITIAL_EMAILS.md",
-    "260424 Aggiornamento listino base per preventivi.md",
-    "260427 Rilancio CIS da WB4.md",
-    "10 Progetti/20 CIS/05 Software/docs/ETHICS_FIRST_BATCH_CONTACT_STRATEGY.md",
-    "260425 Melodema recupero leads.md",
-    "10 Progetti/20 CIS/05 Software/projects/melodema/LOW_PRIORITY_REVIEW_CHECKLIST.md",
-    "10 Progetti/20 CIS/05 Software/projects/melodema/IMPORT_PROCEDURE.md",
-    "90 Archivio/Git e Obsidian.md"
+    "10 Progetti/20 CIS/05 Software/docs/ETHICS_EMAIL_SIGNATURE.md"
   ]
 }

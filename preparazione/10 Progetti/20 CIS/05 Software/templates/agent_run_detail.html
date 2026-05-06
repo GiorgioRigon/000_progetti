@@ -1,0 +1,318 @@
+{% extends "base.html" %}
+
+{% block title %}{{ run.title }} - CIS 2.0{% endblock %}
+{% block body_class %}operational-page cis20-page{% endblock %}
+
+{% block content %}
+  <section class="page-heading">
+    <div>
+      <p class="eyebrow">Agent Run</p>
+      <h1>{{ run.title }}</h1>
+      <p class="muted">{{ run.agent_key }} | {{ run.status }} | progetto {{ run.project_key }}</p>
+    </div>
+    <div class="actions">
+      <a class="button button-secondary" href="{{ url_for('agents_dashboard') }}">Torna a CIS 2.0</a>
+    </div>
+  </section>
+
+  <section class="grid-two">
+    <section class="card">
+      <h2>Run overview</h2>
+      <dl class="detail-grid">
+        <div>
+          <dt>Task totali</dt>
+          <dd>{{ task_summary.total }}</dd>
+        </div>
+        <div>
+          <dt>Queued</dt>
+          <dd>{{ task_summary.queued }}</dd>
+        </div>
+        <div>
+          <dt>Review</dt>
+          <dd>{{ task_summary.review }}</dd>
+        </div>
+        <div>
+          <dt>Approved</dt>
+          <dd>{{ task_summary.approved }}</dd>
+        </div>
+        <div>
+          <dt>Rejected</dt>
+          <dd>{{ task_summary.rejected }}</dd>
+        </div>
+        <div>
+          <dt>Imported</dt>
+          <dd>{{ task_summary.imported }}</dd>
+        </div>
+      </dl>
+      <p class="muted"><strong>Costo stimato:</strong> {{ "%.2f"|format(run.cost_estimate or 0) }}</p>
+      {% if run.objective %}
+        <p class="muted"><strong>Obiettivo:</strong> {{ run.objective }}</p>
+      {% endif %}
+      {% if run.source_ref %}
+        <p class="muted"><strong>Source ref:</strong> {{ run.source_ref }}</p>
+      {% endif %}
+      <form method="post" action="{{ url_for('agent_run_detail', run_id=run.id) }}">
+        <input type="hidden" name="form_type" value="start_review">
+        <button type="submit">Porta queued in review</button>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Input payload</h2>
+      <details>
+        <summary>Dati tecnici run</summary>
+        <pre class="prompt-preview top-gap">{{ run.input_payload }}</pre>
+      </details>
+    </section>
+  </section>
+
+  <section class="card">
+    <h2>Task queue</h2>
+    {% if tasks %}
+      <div class="stack">
+        {% for task in tasks %}
+          <article class="subcard stack">
+            <div class="list-row">
+              <div>
+                <h3>{{ task.title }}</h3>
+                <p class="muted">{{ task.task_type }} | {{ task.status }}{% if task.organization_name %} | {{ task.organization_name }}{% endif %}</p>
+                {% if task.task_type == "wb0_search_slice" %}
+                  <p class="muted">Task di ricerca: esegui la query sulle fonti indicate, poi annota esito e candidati trovati nelle note review.</p>
+                {% endif %}
+                {% if task.task_type == "wb2_contact_enrichment" %}
+                  <p class="muted">Task di contatto e org enrichment: verifica canali, referente, dimensione azienda e segnali organizzativi.</p>
+                {% endif %}
+              </div>
+              <div>
+                {% if task.organization_id %}
+                  <a class="button button-secondary" href="{{ url_for('organization_detail', organization_id=task.organization_id) }}">Apri organization</a>
+                {% endif %}
+              </div>
+            </div>
+            <pre class="prompt-preview">{{ task.input_payload }}</pre>
+            <form class="stack" method="post" action="{{ url_for('agent_run_detail', run_id=run.id) }}">
+              <input type="hidden" name="form_type" value="task_review">
+              <input type="hidden" name="task_id" value="{{ task.id }}">
+              {% set task_data = task.result_payload or {} %}
+              <label for="status_{{ task.id }}">Stato task</label>
+              <select id="status_{{ task.id }}" name="status">
+                {% for option in agent_statuses %}
+                  <option value="{{ option }}" {% if task.status == option %}selected{% endif %}>{{ option }}</option>
+                {% endfor %}
+              </select>
+              {% if task.task_type == "wb0_search_slice" %}
+                <label for="raw_candidates_text_{{ task.id }}">Candidati trovati</label>
+                <textarea
+                  id="raw_candidates_text_{{ task.id }}"
+                  name="raw_candidates_text"
+                  rows="6"
+                  placeholder="Nome | tipo | citta | regione | paese | sito | nota fit"
+                >{{ (task.result_payload or {}).get("raw_candidates_text", "") }}</textarea>
+                <p class="muted">Una riga per candidato nel formato standard WB0. Quando salvi, il CIS li struttura e li rende importabili.</p>
+              {% endif %}
+              {% if task.task_type == "wb1_enrichment_review" %}
+                <div class="grid-two compact">
+                  <div>
+                    <label for="website_{{ task.id }}">Sito ufficiale</label>
+                    <input id="website_{{ task.id }}" name="website" type="text" value="{{ task_data.get('website', task.input_payload.website if task.input_payload else '') }}">
+                  </div>
+                  <div>
+                    <label for="general_email_{{ task.id }}">Email generale</label>
+                    <input id="general_email_{{ task.id }}" name="general_email" type="email" value="{{ task_data.get('general_email', task.input_payload.email if task.input_payload else '') }}">
+                  </div>
+                </div>
+                <label for="general_phone_{{ task.id }}">Telefono generale</label>
+                <input id="general_phone_{{ task.id }}" name="general_phone" type="text" value="{{ task_data.get('general_phone', task.input_payload.phone if task.input_payload else '') }}">
+                <div class="grid-two compact">
+                  <div>
+                    <label for="contact_full_name_{{ task.id }}">Referente suggerito</label>
+                    <input id="contact_full_name_{{ task.id }}" name="contact_full_name" type="text" value="{{ task_data.get('contact_full_name', '') }}">
+                  </div>
+                  <div>
+                    <label for="contact_role_{{ task.id }}">Ruolo</label>
+                    <input id="contact_role_{{ task.id }}" name="contact_role" type="text" value="{{ task_data.get('contact_role', '') }}">
+                  </div>
+                </div>
+                <div class="grid-two compact">
+                  <div>
+                    <label for="contact_email_{{ task.id }}">Email referente</label>
+                    <input id="contact_email_{{ task.id }}" name="contact_email" type="email" value="{{ task_data.get('contact_email', '') }}">
+                  </div>
+                  <div>
+                    <label for="contact_phone_{{ task.id }}">Telefono referente</label>
+                    <input id="contact_phone_{{ task.id }}" name="contact_phone" type="text" value="{{ task_data.get('contact_phone', '') }}">
+                  </div>
+                </div>
+                <label for="social_profiles_{{ task.id }}">Social ufficiali</label>
+                <textarea id="social_profiles_{{ task.id }}" name="social_profiles" rows="3">{{ task_data.get('social_profiles', []) | join('\n') }}</textarea>
+                <div class="grid-two compact">
+                  <div>
+                    <label for="verification_source_{{ task.id }}">Fonte verifica</label>
+                    <input id="verification_source_{{ task.id }}" name="verification_source" type="text" value="{{ task_data.get('verification_source', '') }}">
+                  </div>
+                  <div>
+                    <label for="contact_level_{{ task.id }}">Livello contatto</label>
+                    <input id="contact_level_{{ task.id }}" name="contact_level" type="text" value="{{ task_data.get('contact_level', '') }}">
+                  </div>
+                </div>
+                <label for="qualification_signals_{{ task.id }}">Segnali qualificazione</label>
+                <input id="qualification_signals_{{ task.id }}" name="qualification_signals" type="text" value="{{ task_data.get('qualification_signals', '') }}">
+                <label for="research_note_{{ task.id }}">Note di verifica WB1</label>
+                <textarea id="research_note_{{ task.id }}" name="research_note" rows="4">{{ task_data.get('research_note', '') }}</textarea>
+                <div class="grid-two compact">
+                  <div>
+                    <label for="fit_label_{{ task.id }}">Fit</label>
+                    <select id="fit_label_{{ task.id }}" name="fit_label">
+                      {% for option in ["", "alto", "medio", "basso"] %}
+                        <option value="{{ option }}" {% if task_data.get('fit_label', '') == option %}selected{% endif %}>{{ option or "non indicato" }}</option>
+                      {% endfor %}
+                    </select>
+                  </div>
+                  <div>
+                    <label for="priority_level_{{ task.id }}">Priorita</label>
+                    <select id="priority_level_{{ task.id }}" name="priority_level">
+                      {% for option in ["", "alta", "media", "bassa"] %}
+                        <option value="{{ option }}" {% if task_data.get('priority_level', '') == option %}selected{% endif %}>{{ option or "non indicata" }}</option>
+                      {% endfor %}
+                    </select>
+                  </div>
+                </div>
+                <div class="grid-two compact">
+                  <div>
+                    <label for="opportunity_type_{{ task.id }}">Tipo opportunita</label>
+                    <select id="opportunity_type_{{ task.id }}" name="opportunity_type">
+                      {% for option in ["", "cliente", "partner", "monitor"] %}
+                        <option value="{{ option }}" {% if task_data.get('opportunity_type', '') == option %}selected{% endif %}>{{ option or "non indicato" }}</option>
+                      {% endfor %}
+                    </select>
+                  </div>
+                  <div>
+                    <label for="next_step_{{ task.id }}">Prossimo passo</label>
+                    <input id="next_step_{{ task.id }}" name="next_step" type="text" value="{{ task_data.get('next_step', '') }}">
+                  </div>
+                </div>
+                <label for="qualification_note_{{ task.id }}">Nota di qualificazione</label>
+                <textarea id="qualification_note_{{ task.id }}" name="qualification_note" rows="3">{{ task_data.get('qualification_note', '') }}</textarea>
+              {% endif %}
+              {% if task.task_type == "wb2_contact_enrichment" %}
+                <div class="grid-two compact">
+                  <div>
+                    <label for="website_{{ task.id }}">Sito ufficiale</label>
+                    <input id="website_{{ task.id }}" name="website" type="text" value="{{ task_data.get('website', task.input_payload.website if task.input_payload else '') }}">
+                  </div>
+                  <div>
+                    <label for="employee_count_{{ task.id }}">Numero dipendenti</label>
+                    <input id="employee_count_{{ task.id }}" name="employee_count" type="text" value="{{ task_data.get('employee_count', task.input_payload.employee_count if task.input_payload else '') }}">
+                  </div>
+                </div>
+                <div class="grid-two compact">
+                  <div>
+                    <label for="general_email_wb2_{{ task.id }}">Email generale</label>
+                    <input id="general_email_wb2_{{ task.id }}" name="general_email" type="email" value="{{ task_data.get('general_email', task.input_payload.email if task.input_payload else '') }}">
+                  </div>
+                  <div>
+                    <label for="general_phone_wb2_{{ task.id }}">Telefono generale</label>
+                    <input id="general_phone_wb2_{{ task.id }}" name="general_phone" type="text" value="{{ task_data.get('general_phone', task.input_payload.phone if task.input_payload else '') }}">
+                  </div>
+                </div>
+                <div class="grid-two compact">
+                  <div>
+                    <label for="contact_full_name_wb2_{{ task.id }}">Referente suggerito</label>
+                    <input id="contact_full_name_wb2_{{ task.id }}" name="contact_full_name" type="text" value="{{ task_data.get('contact_full_name', '') }}">
+                  </div>
+                  <div>
+                    <label for="contact_role_wb2_{{ task.id }}">Ruolo</label>
+                    <input id="contact_role_wb2_{{ task.id }}" name="contact_role" type="text" value="{{ task_data.get('contact_role', '') }}">
+                  </div>
+                </div>
+                <div class="grid-two compact">
+                  <div>
+                    <label for="contact_email_wb2_{{ task.id }}">Email referente</label>
+                    <input id="contact_email_wb2_{{ task.id }}" name="contact_email" type="email" value="{{ task_data.get('contact_email', '') }}">
+                  </div>
+                  <div>
+                    <label for="contact_phone_wb2_{{ task.id }}">Telefono referente</label>
+                    <input id="contact_phone_wb2_{{ task.id }}" name="contact_phone" type="text" value="{{ task_data.get('contact_phone', '') }}">
+                  </div>
+                </div>
+                <label for="social_profiles_wb2_{{ task.id }}">Social ufficiali</label>
+                <textarea id="social_profiles_wb2_{{ task.id }}" name="social_profiles" rows="3">{{ task_data.get('social_profiles', []) | join('\n') }}</textarea>
+                <div class="grid-two compact">
+                  <div>
+                    <label for="verification_source_wb2_{{ task.id }}">Fonte verifica</label>
+                    <input id="verification_source_wb2_{{ task.id }}" name="verification_source" type="text" value="{{ task_data.get('verification_source', '') }}">
+                  </div>
+                  <div>
+                    <label for="contact_level_wb2_{{ task.id }}">Livello contatto</label>
+                    <input id="contact_level_wb2_{{ task.id }}" name="contact_level" type="text" value="{{ task_data.get('contact_level', '') }}">
+                  </div>
+                </div>
+                <label for="org_signals_{{ task.id }}">Segnali organizzativi</label>
+                <input id="org_signals_{{ task.id }}" name="org_signals" type="text" value="{{ task_data.get('org_signals', '') }}">
+                <label for="research_note_wb2_{{ task.id }}">Note di verifica WB2</label>
+                <textarea id="research_note_wb2_{{ task.id }}" name="research_note" rows="4">{{ task_data.get('research_note', '') }}</textarea>
+              {% endif %}
+              <label for="review_notes_{{ task.id }}">Note review</label>
+              <textarea id="review_notes_{{ task.id }}" name="review_notes" rows="3">{{ task.review_notes or "" }}</textarea>
+              <div class="actions">
+                <button type="submit">Salva task</button>
+                {% if run.agent_key == "wb0" and task.task_type == "wb0_candidate_review" and task.status in ["review", "approved"] %}
+                  <button type="submit" formaction="{{ url_for('agent_run_detail', run_id=run.id) }}" name="form_type" value="import_wb0_task">Importa nel CIS</button>
+                {% endif %}
+              </div>
+            </form>
+            {% set mission_candidates = (task.result_payload or {}).get("collected_candidates", []) %}
+            {% if mission_candidates %}
+              <div class="stack">
+                <p><strong>Candidati raccolti</strong></p>
+                {% for candidate in mission_candidates %}
+                  <article class="subcard stack">
+                    <div class="list-row">
+                      <div>
+                        <h4>{{ candidate.name }}</h4>
+                        <p class="muted">
+                          {{ candidate.organization_type or "Tipo non indicato" }}
+                          {% if candidate.city or candidate.region or candidate.country %}
+                            | {{ candidate.city or "-" }}{% if candidate.region %}, {{ candidate.region }}{% endif %}{% if candidate.country %}, {{ candidate.country }}{% endif %}
+                          {% endif %}
+                        </p>
+                        {% if candidate.website %}
+                          <p><a href="{{ external_url(candidate.website) }}" target="_blank" rel="noopener noreferrer">{{ candidate.website }}</a></p>
+                        {% endif %}
+                        {% if candidate.notes %}
+                          <p class="muted">{{ candidate.notes }}</p>
+                        {% endif %}
+                        {% if candidate.imported_organization_id %}
+                          <p class="muted">Importata nel CIS come organization ID {{ candidate.imported_organization_id }}.</p>
+                        {% endif %}
+                      </div>
+                      <div>
+                        {% if not candidate.imported_organization_id %}
+                          <form method="post" action="{{ url_for('agent_run_detail', run_id=run.id) }}">
+                            <input type="hidden" name="form_type" value="import_wb0_mission_candidate">
+                            <input type="hidden" name="task_id" value="{{ task.id }}">
+                            <input type="hidden" name="candidate_index" value="{{ loop.index0 }}">
+                            <input type="hidden" name="review_notes" value="{{ task.review_notes or '' }}">
+                            <button type="submit">Importa nel CIS</button>
+                          </form>
+                        {% endif %}
+                      </div>
+                    </div>
+                  </article>
+                {% endfor %}
+              </div>
+            {% endif %}
+            {% if task.result_payload %}
+              <details>
+                <summary>Dati tecnici task</summary>
+                <pre class="prompt-preview top-gap">{{ task.result_payload }}</pre>
+              </details>
+            {% endif %}
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="muted">Nessun task nel run selezionato.</p>
+    {% endif %}
+  </section>
+{% endblock %}

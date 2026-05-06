@@ -98,6 +98,40 @@ CREATE TABLE IF NOT EXISTS relationship_memory (
     FOREIGN KEY (contact_id) REFERENCES contacts(id) ON DELETE SET NULL
 );
 
+CREATE TABLE IF NOT EXISTS agent_runs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    project_key TEXT NOT NULL,
+    agent_key TEXT NOT NULL,
+    title TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'queued',
+    objective TEXT,
+    source_type TEXT,
+    source_ref TEXT,
+    input_payload_json TEXT,
+    output_payload_json TEXT,
+    cost_estimate REAL NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS agent_tasks (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    run_id INTEGER NOT NULL,
+    organization_id INTEGER,
+    task_key TEXT NOT NULL,
+    task_type TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'queued',
+    title TEXT NOT NULL,
+    input_payload_json TEXT,
+    result_payload_json TEXT,
+    review_notes TEXT,
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (run_id) REFERENCES agent_runs(id) ON DELETE CASCADE,
+    FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE SET NULL
+);
+
 CREATE TABLE IF NOT EXISTS assets (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     campaign_id INTEGER,
@@ -203,6 +237,18 @@ CREATE INDEX IF NOT EXISTS idx_messages_organization_id
 
 CREATE INDEX IF NOT EXISTS idx_relationship_memory_organization_id
     ON relationship_memory(organization_id);
+
+CREATE INDEX IF NOT EXISTS idx_agent_runs_project_key
+    ON agent_runs(project_key);
+
+CREATE INDEX IF NOT EXISTS idx_agent_runs_agent_key
+    ON agent_runs(agent_key);
+
+CREATE INDEX IF NOT EXISTS idx_agent_tasks_run_id
+    ON agent_tasks(run_id);
+
+CREATE INDEX IF NOT EXISTS idx_agent_tasks_organization_id
+    ON agent_tasks(organization_id);
 
 CREATE INDEX IF NOT EXISTS idx_assets_campaign_id
     ON assets(campaign_id);

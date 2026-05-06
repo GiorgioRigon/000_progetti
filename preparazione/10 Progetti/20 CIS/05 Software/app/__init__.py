@@ -1,13 +1,28 @@
 from __future__ import annotations
 
+from dataclasses import asdict
+from datetime import datetime, timezone
 import logging
 from pathlib import Path
 
 from flask import Flask, abort, flash, redirect, render_template, request, session, url_for
 from werkzeug.exceptions import HTTPException
 
+from app.agent_runtime import (
+    AGENT_STATUSES,
+    build_wb0_mission_spec,
+    build_wb0_run_spec,
+    build_wb1_run_spec,
+    build_wb2_run_spec,
+    infer_run_status,
+    summarize_task_counts,
+)
 from app.csv_import import ImportResult, import_leads_csv
 from app.data_access import (
+    AgentRunCreate,
+    AgentRunRepository,
+    AgentTaskCreate,
+    AgentTaskRepository,
     QuoteCreate,
     QuoteIntakeCreate,
     QuoteIntakeRepository,
@@ -74,16 +89,23 @@ from app.wb1_contact_hunter import (
     merge_wb1_notes,
     parse_multiline_field as parse_wb1_multiline_field,
 )
+from app.wb2_enricher import (
+    build_wb2_note,
+    merge_wb2_notes,
+    parse_multiline_field as parse_wb2_multiline_field,
+)
 from app.wb0_target_discovery import (
     DEFAULT_PROJECT_KEY,
     build_discovery_run,
     build_prompt_preview,
+    build_search_query_pack,
     delete_discovery_run,
     list_discovery_runs,
     load_discovery_run,
     load_latest_run,
     load_project_sources,
     mark_candidate_imported,
+    parse_candidate_lines,
     reset_latest_run,
     save_discovery_run,
     update_candidate_review,
@@ -112,6 +134,8 @@ def create_app(
     outreach_actions = OutreachActionRepository(database)
     messages = MessageRepository(database)
     relationship_memory = RelationshipMemoryRepository(database)
+    agent_runs = AgentRunRepository(database)
+    agent_tasks = AgentTaskRepository(database)
     quote_intakes = QuoteIntakeRepository(database)
     quotes = QuoteRepository(database)
     quote_line_items = QuoteLineItemRepository(database)
@@ -137,6 +161,7 @@ def create_app(
         return {
             "available_projects": available_projects,
             "active_project_key": get_active_project_key(),
+            "external_url": _normalize_external_url,
         }
 
     @app.get("/")
@@ -431,6 +456,15 @@ def create_app(
             form_data["exclusion_criteria"],
             profile=wb0_profile,
         )
+        search_query_pack = build_search_query_pack(
+            research_goal=form_data["research_goal"],
+            territory_target=form_data["territory_target"],
+            target_types_text=form_data["target_types"],
+            selected_sources=form_data["selected_sources"],
+            research_prompt=form_data["research_prompt"],
+            prompt_variants_text=form_data["prompt_variants"],
+            inclusion_criteria_text=form_data["inclusion_criteria"],
+        )
         return render_template(
             "wb0_target_discovery.html",
             project_key=project_key,
@@ -439,9 +473,830 @@ def create_app(
             form_data=form_data,
             available_sources=available_sources,
             prompt_preview=prompt_preview,
+            search_query_pack=search_query_pack,
             saved_runs=saved_runs,
             selected_run_file=selected_run_file,
             latest_output_path=latest_output_path if latest_output_path.exists() else None,
+        )
+
+    @app.route("/agents", methods=["GET", "POST"])
+    def agents_dashboard() -> str:
+        project_key = get_active_project_key()
+        project_runs = agent_runs.list_by_project(project_key)
+        available_wb0_runs = list_discovery_runs(project_key, app.config["PROJECTS_ROOT"])
+        project_organizations = organizations.list_by_project(project_key)
+        available_sources = load_project_sources(project_key, app.config["PROJECTS_ROOT"])
+
+        wb1_candidates: list[dict[str, object]] = []
+        for organization in project_organizations:
+            organization_contacts = contacts.list_by_organization(int(organization["id"]))
+            wb1_candidates.append(
+                {
+                    "id": int(organization["id"]),
+                    "name": str(organization.get("name") or ""),
+                    "contact_count": len(organization_contacts),
+                    "email": str(organization.get("email") or ""),
+                    "website": str(organization.get("website") or ""),
+                }
+            )
+        wb2_candidates = sorted(
+            wb1_candidates,
+            key=lambda item: (
+                0 if int(item["contact_count"]) == 0 else 1,
+                int(item["contact_count"]),
+                str(item["name"]).lower(),
+            ),
+        )
+
+        if request.method == "POST":
+            form_type = request.form.get("form_type", "").strip()
+            if form_type == "create_wb0_run":
+                source_run_file = request.form.get("source_run_file", "").strip()
+                if not source_run_file:
+                    flash("Seleziona un run WB0 da portare nel runtime CIS 2.0.", "error")
+                    return redirect(url_for("agents_dashboard"))
+
+                discovery_run = load_discovery_run(project_key, app.config["PROJECTS_ROOT"], source_run_file)
+                if discovery_run is None:
+                    flash("Il run WB0 selezionato non e disponibile.", "error")
+                    return redirect(url_for("agents_dashboard"))
+
+                spec = build_wb0_run_spec(discovery_run, source_run_file)
+                try:
+                    run_id = agent_runs.create(
+                        AgentRunCreate(
+                            project_key=str(spec["project_key"]),
+                            agent_key=str(spec["agent_key"]),
+                            title=str(spec["title"]),
+                            objective=str(spec["objective"] or "") or None,
+                            status="queued",
+                            source_type=str(spec["source_type"] or "") or None,
+                            source_ref=str(spec["source_ref"] or "") or None,
+                            input_payload=dict(spec["input_payload"]),
+                            output_payload=dict(spec["output_payload"]),
+                            cost_estimate=float(spec["cost_estimate"]),
+                        )
+                    )
+                    agent_tasks.create_many(
+                        [
+                            AgentTaskCreate(
+                                run_id=run_id,
+                                task_key=str(task["task_key"]),
+                                task_type=str(task["task_type"]),
+                                title=str(task["title"]),
+                                organization_id=task.get("organization_id"),
+                                status=str(task["status"]),
+                                input_payload=dict(task.get("input_payload") or {}),
+                                result_payload=dict(task.get("result_payload") or {}),
+                                sort_order=int(task.get("sort_order") or 0),
+                            )
+                            for task in spec["tasks"]
+                        ]
+                    )
+                except Exception:
+                    app.logger.exception("Failed to create CIS 2.0 WB0 run")
+                    flash("Non e stato possibile creare il run WB0 del runtime CIS 2.0.", "error")
+                else:
+                    flash("Run agente WB0 creato correttamente.", "success")
+                    return redirect(url_for("agent_run_detail", run_id=run_id))
+            elif form_type == "create_wb0_mission_run":
+                try:
+                    spec = build_wb0_mission_spec(
+                        project_key=project_key,
+                        research_goal=request.form.get("research_goal", ""),
+                        project_context=request.form.get("project_context", ""),
+                        territory_target=request.form.get("territory_target", ""),
+                        target_types_text=request.form.get("target_types", ""),
+                        selected_sources=request.form.getlist("selected_sources"),
+                        research_prompt=request.form.get("research_prompt", ""),
+                        prompt_variants_text=request.form.get("prompt_variants", ""),
+                        inclusion_criteria_text=request.form.get("inclusion_criteria", ""),
+                        exclusion_criteria_text=request.form.get("exclusion_criteria", ""),
+                    )
+                    run_id = agent_runs.create(
+                        AgentRunCreate(
+                            project_key=str(spec["project_key"]),
+                            agent_key=str(spec["agent_key"]),
+                            title=str(spec["title"]),
+                            objective=str(spec["objective"] or "") or None,
+                            status="queued",
+                            source_type=str(spec["source_type"] or "") or None,
+                            source_ref=str(spec["source_ref"] or "") or None,
+                            input_payload=dict(spec["input_payload"]),
+                            output_payload=dict(spec["output_payload"]),
+                            cost_estimate=float(spec["cost_estimate"]),
+                        )
+                    )
+                    agent_tasks.create_many(
+                        [
+                            AgentTaskCreate(
+                                run_id=run_id,
+                                task_key=str(task["task_key"]),
+                                task_type=str(task["task_type"]),
+                                title=str(task["title"]),
+                                organization_id=task.get("organization_id"),
+                                status=str(task["status"]),
+                                input_payload=dict(task.get("input_payload") or {}),
+                                result_payload=dict(task.get("result_payload") or {}),
+                                sort_order=int(task.get("sort_order") or 0),
+                            )
+                            for task in spec["tasks"]
+                        ]
+                    )
+                except ValueError as exc:
+                    flash(str(exc), "error")
+                    return redirect(url_for("agents_dashboard"))
+                except Exception:
+                    app.logger.exception("Failed to create CIS 2.0 WB0 mission run")
+                    flash("Non e stato possibile creare la missione WB0 del runtime CIS 2.0.", "error")
+                else:
+                    flash("Missione agente WB0 creata correttamente.", "success")
+                    return redirect(url_for("agent_run_detail", run_id=run_id))
+            elif form_type == "create_wb1_run":
+                filter_mode = request.form.get("filter_mode", "without_contacts_first").strip() or "without_contacts_first"
+                batch_size_raw = request.form.get("batch_size", "").strip()
+                try:
+                    batch_size = int(batch_size_raw) if batch_size_raw else 10
+                except ValueError:
+                    abort(400, description="Batch size WB1 non valida.")
+                if batch_size < 1:
+                    abort(400, description="Batch size WB1 non valida.")
+
+                sorted_candidates = sorted(
+                    wb1_candidates,
+                    key=lambda item: (
+                        0 if filter_mode == "without_contacts_first" and int(item["contact_count"]) == 0 else 1,
+                        int(item["contact_count"]),
+                        str(item["name"]).lower(),
+                    ),
+                )
+                selected_candidates = sorted_candidates[:batch_size]
+                selected_organizations = []
+                for item in selected_candidates:
+                    organization = organizations.get(int(item["id"]))
+                    if organization is None:
+                        continue
+                    organization["contact_count"] = int(item["contact_count"])
+                    selected_organizations.append(organization)
+
+                if not selected_organizations:
+                    flash("Nessuna organization disponibile per creare un batch WB1.", "warning")
+                    return redirect(url_for("agents_dashboard"))
+
+                spec = build_wb1_run_spec(
+                    project_key=project_key,
+                    organizations=selected_organizations,
+                    batch_label=f"{project_key} | {len(selected_organizations)} organization",
+                    filter_mode=filter_mode,
+                )
+                try:
+                    run_id = agent_runs.create(
+                        AgentRunCreate(
+                            project_key=str(spec["project_key"]),
+                            agent_key=str(spec["agent_key"]),
+                            title=str(spec["title"]),
+                            objective=str(spec["objective"] or "") or None,
+                            status="queued",
+                            source_type=str(spec["source_type"] or "") or None,
+                            source_ref=str(spec["source_ref"] or "") or None,
+                            input_payload=dict(spec["input_payload"]),
+                            output_payload=dict(spec["output_payload"]),
+                            cost_estimate=float(spec["cost_estimate"]),
+                        )
+                    )
+                    agent_tasks.create_many(
+                        [
+                            AgentTaskCreate(
+                                run_id=run_id,
+                                task_key=str(task["task_key"]),
+                                task_type=str(task["task_type"]),
+                                title=str(task["title"]),
+                                organization_id=task.get("organization_id"),
+                                status=str(task["status"]),
+                                input_payload=dict(task.get("input_payload") or {}),
+                                result_payload=dict(task.get("result_payload") or {}),
+                                sort_order=int(task.get("sort_order") or 0),
+                            )
+                            for task in spec["tasks"]
+                        ]
+                    )
+                except Exception:
+                    app.logger.exception("Failed to create CIS 2.0 WB1 run")
+                    flash("Non e stato possibile creare il run WB1 del runtime CIS 2.0.", "error")
+                else:
+                    flash("Run agente WB1 creato correttamente.", "success")
+                    return redirect(url_for("agent_run_detail", run_id=run_id))
+            elif form_type == "create_wb1_single_run":
+                organization_id_raw = request.form.get("organization_id", "").strip()
+                if not organization_id_raw.isdigit():
+                    abort(400, description="Lead WB1 non valido.")
+                organization = organizations.get(int(organization_id_raw))
+                if organization is None or str(organization.get("project_key") or "") != project_key:
+                    abort(404)
+                organization["contact_count"] = len(contacts.list_by_organization(int(organization_id_raw)))
+                spec = build_wb1_run_spec(
+                    project_key=project_key,
+                    organizations=[organization],
+                    batch_label=f"{project_key} | 1 organization",
+                    filter_mode="single_selection",
+                )
+                try:
+                    run_id = agent_runs.create(
+                        AgentRunCreate(
+                            project_key=str(spec["project_key"]),
+                            agent_key=str(spec["agent_key"]),
+                            title=str(spec["title"]),
+                            objective=str(spec["objective"] or "") or None,
+                            status="queued",
+                            source_type=str(spec["source_type"] or "") or None,
+                            source_ref=str(spec["source_ref"] or "") or None,
+                            input_payload=dict(spec["input_payload"]),
+                            output_payload=dict(spec["output_payload"]),
+                            cost_estimate=float(spec["cost_estimate"]),
+                        )
+                    )
+                    agent_tasks.create_many(
+                        [
+                            AgentTaskCreate(
+                                run_id=run_id,
+                                task_key=str(task["task_key"]),
+                                task_type=str(task["task_type"]),
+                                title=str(task["title"]),
+                                organization_id=task.get("organization_id"),
+                                status=str(task["status"]),
+                                input_payload=dict(task.get("input_payload") or {}),
+                                result_payload=dict(task.get("result_payload") or {}),
+                                sort_order=int(task.get("sort_order") or 0),
+                            )
+                            for task in spec["tasks"]
+                        ]
+                    )
+                except Exception:
+                    app.logger.exception("Failed to create CIS 2.0 WB1 single run")
+                    flash("Non e stato possibile creare il run WB1 sul lead selezionato.", "error")
+                else:
+                    flash("Run agente WB1 sul singolo lead creato correttamente.", "success")
+                    return redirect(url_for("agent_run_detail", run_id=run_id))
+            elif form_type == "create_wb2_run":
+                filter_mode = request.form.get("filter_mode", "without_contacts_first").strip() or "without_contacts_first"
+                batch_size_raw = request.form.get("batch_size", "").strip()
+                try:
+                    batch_size = int(batch_size_raw) if batch_size_raw else 10
+                except ValueError:
+                    abort(400, description="Batch size WB2 non valida.")
+                if batch_size < 1:
+                    abort(400, description="Batch size WB2 non valida.")
+
+                sorted_candidates = sorted(
+                    wb2_candidates,
+                    key=lambda item: (
+                        0 if filter_mode == "without_contacts_first" and int(item["contact_count"]) == 0 else 1,
+                        int(item["contact_count"]),
+                        str(item["name"]).lower(),
+                    ),
+                )
+                selected_candidates = sorted_candidates[:batch_size]
+                selected_organizations = []
+                for item in selected_candidates:
+                    organization = organizations.get(int(item["id"]))
+                    if organization is None:
+                        continue
+                    organization["contact_count"] = int(item["contact_count"])
+                    selected_organizations.append(organization)
+
+                if not selected_organizations:
+                    flash("Nessuna organization disponibile per creare un batch WB2.", "warning")
+                    return redirect(url_for("agents_dashboard"))
+
+                spec = build_wb2_run_spec(
+                    project_key=project_key,
+                    organizations=selected_organizations,
+                    batch_label=f"{project_key} | {len(selected_organizations)} organization",
+                    filter_mode=filter_mode,
+                )
+                try:
+                    run_id = agent_runs.create(
+                        AgentRunCreate(
+                            project_key=str(spec["project_key"]),
+                            agent_key=str(spec["agent_key"]),
+                            title=str(spec["title"]),
+                            objective=str(spec["objective"] or "") or None,
+                            status="queued",
+                            source_type=str(spec["source_type"] or "") or None,
+                            source_ref=str(spec["source_ref"] or "") or None,
+                            input_payload=dict(spec["input_payload"]),
+                            output_payload=dict(spec["output_payload"]),
+                            cost_estimate=float(spec["cost_estimate"]),
+                        )
+                    )
+                    agent_tasks.create_many(
+                        [
+                            AgentTaskCreate(
+                                run_id=run_id,
+                                task_key=str(task["task_key"]),
+                                task_type=str(task["task_type"]),
+                                title=str(task["title"]),
+                                organization_id=task.get("organization_id"),
+                                status=str(task["status"]),
+                                input_payload=dict(task.get("input_payload") or {}),
+                                result_payload=dict(task.get("result_payload") or {}),
+                                sort_order=int(task.get("sort_order") or 0),
+                            )
+                            for task in spec["tasks"]
+                        ]
+                    )
+                except Exception:
+                    app.logger.exception("Failed to create CIS 2.0 WB2 run")
+                    flash("Non e stato possibile creare il run WB2 del runtime CIS 2.0.", "error")
+                else:
+                    flash("Run agente WB2 creato correttamente.", "success")
+                    return redirect(url_for("agent_run_detail", run_id=run_id))
+            elif form_type == "create_wb2_single_run":
+                organization_id_raw = request.form.get("organization_id", "").strip()
+                if not organization_id_raw.isdigit():
+                    abort(400, description="Lead WB2 non valido.")
+                organization = organizations.get(int(organization_id_raw))
+                if organization is None or str(organization.get("project_key") or "") != project_key:
+                    abort(404)
+                organization["contact_count"] = len(contacts.list_by_organization(int(organization_id_raw)))
+                spec = build_wb2_run_spec(
+                    project_key=project_key,
+                    organizations=[organization],
+                    batch_label=f"{project_key} | 1 organization",
+                    filter_mode="single_selection",
+                )
+                try:
+                    run_id = agent_runs.create(
+                        AgentRunCreate(
+                            project_key=str(spec["project_key"]),
+                            agent_key=str(spec["agent_key"]),
+                            title=str(spec["title"]),
+                            objective=str(spec["objective"] or "") or None,
+                            status="queued",
+                            source_type=str(spec["source_type"] or "") or None,
+                            source_ref=str(spec["source_ref"] or "") or None,
+                            input_payload=dict(spec["input_payload"]),
+                            output_payload=dict(spec["output_payload"]),
+                            cost_estimate=float(spec["cost_estimate"]),
+                        )
+                    )
+                    agent_tasks.create_many(
+                        [
+                            AgentTaskCreate(
+                                run_id=run_id,
+                                task_key=str(task["task_key"]),
+                                task_type=str(task["task_type"]),
+                                title=str(task["title"]),
+                                organization_id=task.get("organization_id"),
+                                status=str(task["status"]),
+                                input_payload=dict(task.get("input_payload") or {}),
+                                result_payload=dict(task.get("result_payload") or {}),
+                                sort_order=int(task.get("sort_order") or 0),
+                            )
+                            for task in spec["tasks"]
+                        ]
+                    )
+                except Exception:
+                    app.logger.exception("Failed to create CIS 2.0 WB2 single run")
+                    flash("Non e stato possibile creare il run WB2 sul lead selezionato.", "error")
+                else:
+                    flash("Run agente WB2 sul singolo lead creato correttamente.", "success")
+                    return redirect(url_for("agent_run_detail", run_id=run_id))
+
+        queue_summary = {status: 0 for status in AGENT_STATUSES}
+        queue_summary["total"] = 0
+        for run in project_runs:
+            queue_summary["total"] += int(run.get("task_count") or 0)
+            for status in AGENT_STATUSES:
+                queue_summary[status] += int(run.get(f"{status}_count") or 0)
+
+        return render_template(
+            "agents_dashboard.html",
+            project_runs=project_runs,
+            available_wb0_runs=available_wb0_runs,
+            available_sources=available_sources,
+            wb1_candidates_preview=wb1_candidates[:12],
+            wb2_candidates_preview=wb2_candidates[:12],
+            wb1_candidates=wb1_candidates,
+            wb2_candidates=wb2_candidates,
+            queue_summary=queue_summary,
+        )
+
+    @app.route("/agent-runs/<int:run_id>", methods=["GET", "POST"])
+    def agent_run_detail(run_id: int) -> str:
+        run = agent_runs.get(run_id)
+        if run is None:
+            abort(404)
+
+        if request.method == "POST":
+            form_type = request.form.get("form_type", "").strip()
+            if form_type == "start_review":
+                try:
+                    agent_tasks.bulk_update_status(run_id, "queued", "review")
+                    tasks = agent_tasks.list_by_run(run_id)
+                    agent_runs.update(
+                        run_id,
+                        status=infer_run_status(tasks),
+                        output_payload={"task_counts": summarize_task_counts(tasks)},
+                    )
+                except Exception:
+                    app.logger.exception("Failed to move CIS 2.0 run to review")
+                    flash("Non e stato possibile portare il run in review.", "error")
+                else:
+                    flash("Task queued portati in review.", "success")
+                    return redirect(url_for("agent_run_detail", run_id=run_id))
+            elif form_type == "task_review":
+                task_id_raw = request.form.get("task_id", "").strip()
+                if not task_id_raw.isdigit():
+                    abort(400, description="Task agente non valida.")
+                task = agent_tasks.get(int(task_id_raw))
+                if task is None or int(task["run_id"]) != run_id:
+                    abort(404)
+                new_status = request.form.get("status", "").strip()
+                if new_status not in AGENT_STATUSES:
+                    abort(400, description="Stato task agente non valido.")
+                result_payload = dict(task.get("result_payload") or {})
+                result_payload["review_status"] = new_status
+                raw_candidates_text = request.form.get("raw_candidates_text", "").strip()
+                if str(task.get("task_type")) == "wb0_search_slice":
+                    result_payload["raw_candidates_text"] = raw_candidates_text
+                    if raw_candidates_text:
+                        try:
+                            collected_candidates = [
+                                {
+                                    **asdict(candidate),
+                                    "source": "cis20_wb0_mission",
+                                }
+                                for candidate in parse_candidate_lines(raw_candidates_text)
+                            ]
+                        except ValueError as exc:
+                            flash(str(exc), "error")
+                            return redirect(url_for("agent_run_detail", run_id=run_id))
+                        result_payload["collected_candidates"] = collected_candidates
+                        result_payload["candidate_count"] = len(collected_candidates)
+                        result_payload["collection_status"] = "raccolta_completata"
+                    else:
+                        result_payload["collected_candidates"] = []
+                        result_payload["candidate_count"] = 0
+                        result_payload["collection_status"] = "da_avviare"
+                elif str(task.get("task_type")) == "wb1_enrichment_review":
+                    website = request.form.get("website", "").strip()
+                    general_email = request.form.get("general_email", "").strip()
+                    general_phone = request.form.get("general_phone", "").strip()
+                    contact_full_name = request.form.get("contact_full_name", "").strip()
+                    contact_role = request.form.get("contact_role", "").strip()
+                    contact_email = request.form.get("contact_email", "").strip()
+                    contact_phone = request.form.get("contact_phone", "").strip()
+                    social_profiles = parse_wb1_multiline_field(request.form.get("social_profiles", ""))
+                    research_note = build_research_note(
+                        research_note=request.form.get("research_note", ""),
+                        verification_source=request.form.get("verification_source", ""),
+                        contact_level=request.form.get("contact_level", ""),
+                        qualification_signals=request.form.get("qualification_signals", ""),
+                    )
+                    qualification_note = build_qualification_note(
+                        fit_label=request.form.get("fit_label", ""),
+                        opportunity_type=request.form.get("opportunity_type", ""),
+                        priority_level=request.form.get("priority_level", ""),
+                        qualification_signals=request.form.get("qualification_signals", ""),
+                        next_step=request.form.get("next_step", ""),
+                        qualification_note=request.form.get("qualification_note", ""),
+                    )
+                    result_payload.update(
+                        {
+                            "website": website,
+                            "general_email": general_email,
+                            "general_phone": general_phone,
+                            "contact_full_name": contact_full_name,
+                            "contact_role": contact_role,
+                            "contact_email": contact_email,
+                            "contact_phone": contact_phone,
+                            "social_profiles": social_profiles,
+                            "verification_source": request.form.get("verification_source", "").strip(),
+                            "contact_level": request.form.get("contact_level", "").strip(),
+                            "qualification_signals": request.form.get("qualification_signals", "").strip(),
+                            "research_note": request.form.get("research_note", "").strip(),
+                            "fit_label": request.form.get("fit_label", "").strip(),
+                            "opportunity_type": request.form.get("opportunity_type", "").strip(),
+                            "priority_level": request.form.get("priority_level", "").strip(),
+                            "next_step": request.form.get("next_step", "").strip(),
+                            "qualification_note": request.form.get("qualification_note", "").strip(),
+                        }
+                    )
+                    if any(
+                        [
+                            website,
+                            general_email,
+                            general_phone,
+                            contact_full_name,
+                            contact_role,
+                            contact_email,
+                            contact_phone,
+                            social_profiles,
+                            research_note,
+                            qualification_note,
+                        ]
+                    ):
+                        result_payload["enrichment_status"] = "ricerca_completata"
+                        organization_id = task.get("organization_id")
+                        if organization_id:
+                            organization = organizations.get(int(organization_id))
+                            if organization is None:
+                                abort(404)
+                            merged_notes = merge_wb1_notes(
+                                existing_notes=organization.get("notes"),
+                                social_profiles=social_profiles,
+                                research_note=research_note,
+                            )
+                            merged_notes = merge_qualification_notes(merged_notes, qualification_note)
+                            organizations.update(
+                                int(organization_id),
+                                OrganizationCreate(
+                                    name=str(organization.get("name") or ""),
+                                    project_key=str(organization.get("project_key") or get_active_project_key()),
+                                    campaign_id=organization.get("campaign_id"),
+                                    organization_type=organization.get("organization_type"),
+                                    sector=organization.get("sector"),
+                                    city=organization.get("city"),
+                                    region=organization.get("region"),
+                                    country=organization.get("country"),
+                                    website=website or organization.get("website"),
+                                    phone=general_phone or organization.get("phone"),
+                                    email=general_email or organization.get("email"),
+                                    employee_count=organization.get("employee_count"),
+                                    source=organization.get("source"),
+                                    notes=merged_notes,
+                                ),
+                            )
+                            if any([contact_full_name, contact_role, contact_email, contact_phone]):
+                                existing_contacts = contacts.list_by_organization(int(organization_id))
+                                normalized_full_name = contact_full_name.casefold()
+                                normalized_contact_email = contact_email.casefold()
+                                duplicate_contact = any(
+                                    (
+                                        normalized_full_name
+                                        and str(item.get("full_name") or "").strip().casefold() == normalized_full_name
+                                    )
+                                    or (
+                                        normalized_contact_email
+                                        and str(item.get("email") or "").strip().casefold() == normalized_contact_email
+                                    )
+                                    for item in existing_contacts
+                                )
+                                if not duplicate_contact:
+                                    contacts.create(
+                                        ContactCreate(
+                                            organization_id=int(organization_id),
+                                            full_name=contact_full_name or None,
+                                            role=contact_role or None,
+                                            email=contact_email or None,
+                                            phone=contact_phone or None,
+                                            notes="Contatto aggiunto da WB1 runtime 2.0.",
+                                        )
+                                    )
+                elif str(task.get("task_type")) == "wb2_contact_enrichment":
+                    website = request.form.get("website", "").strip()
+                    general_email = request.form.get("general_email", "").strip()
+                    general_phone = request.form.get("general_phone", "").strip()
+                    employee_count = request.form.get("employee_count", "").strip()
+                    contact_full_name = request.form.get("contact_full_name", "").strip()
+                    contact_role = request.form.get("contact_role", "").strip()
+                    contact_email = request.form.get("contact_email", "").strip()
+                    contact_phone = request.form.get("contact_phone", "").strip()
+                    social_profiles = parse_wb2_multiline_field(request.form.get("social_profiles", ""))
+                    wb2_note = build_wb2_note(
+                        research_note=request.form.get("research_note", ""),
+                        verification_source=request.form.get("verification_source", ""),
+                        contact_level=request.form.get("contact_level", ""),
+                        employee_count=employee_count,
+                        org_signals=request.form.get("org_signals", ""),
+                    )
+                    result_payload.update(
+                        {
+                            "website": website,
+                            "general_email": general_email,
+                            "general_phone": general_phone,
+                            "employee_count": employee_count,
+                            "contact_full_name": contact_full_name,
+                            "contact_role": contact_role,
+                            "contact_email": contact_email,
+                            "contact_phone": contact_phone,
+                            "social_profiles": social_profiles,
+                            "verification_source": request.form.get("verification_source", "").strip(),
+                            "contact_level": request.form.get("contact_level", "").strip(),
+                            "org_signals": request.form.get("org_signals", "").strip(),
+                            "research_note": request.form.get("research_note", "").strip(),
+                        }
+                    )
+                    if any(
+                        [
+                            website,
+                            general_email,
+                            general_phone,
+                            employee_count,
+                            contact_full_name,
+                            contact_role,
+                            contact_email,
+                            contact_phone,
+                            social_profiles,
+                            wb2_note,
+                        ]
+                    ):
+                        result_payload["enrichment_status"] = "ricerca_completata"
+                        organization_id = task.get("organization_id")
+                        if organization_id:
+                            organization = organizations.get(int(organization_id))
+                            if organization is None:
+                                abort(404)
+                            organizations.update(
+                                int(organization_id),
+                                OrganizationCreate(
+                                    name=str(organization.get("name") or ""),
+                                    project_key=str(organization.get("project_key") or get_active_project_key()),
+                                    campaign_id=organization.get("campaign_id"),
+                                    organization_type=organization.get("organization_type"),
+                                    sector=organization.get("sector"),
+                                    city=organization.get("city"),
+                                    region=organization.get("region"),
+                                    country=organization.get("country"),
+                                    website=website or organization.get("website"),
+                                    phone=general_phone or organization.get("phone"),
+                                    email=general_email or organization.get("email"),
+                                    employee_count=_parse_optional_nonnegative_int(employee_count) or organization.get("employee_count"),
+                                    source=organization.get("source"),
+                                    notes=merge_wb2_notes(
+                                        existing_notes=organization.get("notes"),
+                                        social_profiles=social_profiles,
+                                        wb2_note=wb2_note,
+                                    ),
+                                ),
+                            )
+                            if any([contact_full_name, contact_role, contact_email, contact_phone]):
+                                existing_contacts = contacts.list_by_organization(int(organization_id))
+                                normalized_full_name = contact_full_name.casefold()
+                                normalized_contact_email = contact_email.casefold()
+                                duplicate_contact = any(
+                                    (
+                                        normalized_full_name
+                                        and str(item.get("full_name") or "").strip().casefold() == normalized_full_name
+                                    )
+                                    or (
+                                        normalized_contact_email
+                                        and str(item.get("email") or "").strip().casefold() == normalized_contact_email
+                                    )
+                                    for item in existing_contacts
+                                )
+                                if not duplicate_contact:
+                                    contacts.create(
+                                        ContactCreate(
+                                            organization_id=int(organization_id),
+                                            full_name=contact_full_name or None,
+                                            role=contact_role or None,
+                                            email=contact_email or None,
+                                            phone=contact_phone or None,
+                                            notes="Contatto aggiunto da WB2 runtime 2.0.",
+                                        )
+                                    )
+                try:
+                    agent_tasks.update(
+                        int(task_id_raw),
+                        status=new_status,
+                        review_notes=request.form.get("review_notes", "").strip() or None,
+                        result_payload=result_payload,
+                    )
+                    tasks = agent_tasks.list_by_run(run_id)
+                    agent_runs.update(
+                        run_id,
+                        status=infer_run_status(tasks),
+                        output_payload={"task_counts": summarize_task_counts(tasks)},
+                    )
+                except Exception:
+                    app.logger.exception("Failed to update CIS 2.0 task review")
+                    flash("Non e stato possibile aggiornare il task agente.", "error")
+                else:
+                    flash("Task agente aggiornato correttamente.", "success")
+                    return redirect(url_for("agent_run_detail", run_id=run_id))
+            elif form_type == "import_wb0_mission_candidate":
+                task_id_raw = request.form.get("task_id", "").strip()
+                candidate_index_raw = request.form.get("candidate_index", "").strip()
+                if not task_id_raw.isdigit() or not candidate_index_raw.isdigit():
+                    abort(400, description="Candidate missione WB0 non valida.")
+                task = agent_tasks.get(int(task_id_raw))
+                if task is None or int(task["run_id"]) != run_id:
+                    abort(404)
+                if str(task.get("task_type")) != "wb0_search_slice":
+                    abort(400, description="Import consentito solo per task missione WB0.")
+                result_payload = dict(task.get("result_payload") or {})
+                collected_candidates = list(result_payload.get("collected_candidates") or [])
+                candidate_index = int(candidate_index_raw)
+                if candidate_index < 0 or candidate_index >= len(collected_candidates):
+                    abort(400, description="Candidate missione WB0 non valida.")
+                candidate = dict(collected_candidates[candidate_index] or {})
+                candidate_name = str(candidate.get("name") or "").strip()
+                if not candidate_name:
+                    abort(400, description="Candidate missione WB0 non valida.")
+                if candidate.get("imported_organization_id"):
+                    flash("Questa candidate della missione WB0 e gia stata importata.", "warning")
+                    return redirect(url_for("agent_run_detail", run_id=run_id))
+                try:
+                    organization_id = organizations.create(
+                        OrganizationCreate(
+                            name=candidate_name,
+                            project_key=str(run.get("project_key") or get_active_project_key()),
+                            organization_type=_clean_form_value(candidate.get("organization_type")),
+                            city=_clean_form_value(candidate.get("city")),
+                            region=_clean_form_value(candidate.get("region")),
+                            country=_clean_form_value(candidate.get("country")),
+                            website=_clean_form_value(candidate.get("website")),
+                            source="cis20_wb0_mission_import",
+                            notes=_build_import_notes(candidate),
+                        )
+                    )
+                    candidate["imported_organization_id"] = organization_id
+                    candidate["imported_at"] = datetime.now(timezone.utc).replace(microsecond=0).isoformat()
+                    candidate["final_decision"] = "importata"
+                    collected_candidates[candidate_index] = candidate
+                    result_payload["collected_candidates"] = collected_candidates
+                    result_payload["candidate_count"] = len(collected_candidates)
+                    result_payload["collection_status"] = "raccolta_completata"
+                    agent_tasks.update(
+                        int(task_id_raw),
+                        status="approved" if str(task.get("status") or "") != "imported" else "imported",
+                        review_notes=request.form.get("review_notes", "").strip() or task.get("review_notes"),
+                        result_payload=result_payload,
+                    )
+                    tasks = agent_tasks.list_by_run(run_id)
+                    agent_runs.update(
+                        run_id,
+                        status=infer_run_status(tasks),
+                        output_payload={"task_counts": summarize_task_counts(tasks)},
+                    )
+                except Exception:
+                    app.logger.exception("Failed to import WB0 mission candidate into CIS")
+                    flash("Non e stato possibile importare la candidate della missione WB0.", "error")
+                else:
+                    flash("Candidate della missione WB0 importata nel CIS correttamente.", "success")
+                    return redirect(url_for("organization_detail", organization_id=organization_id))
+            elif form_type == "import_wb0_task":
+                task_id_raw = request.form.get("task_id", "").strip()
+                if not task_id_raw.isdigit():
+                    abort(400, description="Task agente non valida.")
+                task = agent_tasks.get(int(task_id_raw))
+                if task is None or int(task["run_id"]) != run_id:
+                    abort(404)
+                if str(run.get("agent_key")) != "wb0":
+                    abort(400, description="Solo i task WB0 possono essere importati nel CIS.")
+                if str(task.get("task_type")) != "wb0_candidate_review":
+                    abort(400, description="Import diretto consentito solo per task candidate review WB0.")
+                input_payload = dict(task.get("input_payload") or {})
+                candidate = dict(input_payload.get("candidate") or {})
+                candidate_name = str(candidate.get("name") or "").strip()
+                if not candidate_name:
+                    abort(400, description="Candidate WB0 non valida.")
+                try:
+                    organization_id = organizations.create(
+                        OrganizationCreate(
+                            name=candidate_name,
+                            project_key=str(run.get("project_key") or get_active_project_key()),
+                            organization_type=_clean_form_value(candidate.get("organization_type")),
+                            city=_clean_form_value(candidate.get("city")),
+                            region=_clean_form_value(candidate.get("region")),
+                            country=_clean_form_value(candidate.get("country")),
+                            website=_clean_form_value(candidate.get("website")),
+                            source="cis20_wb0_import",
+                            notes=_build_import_notes(candidate),
+                        )
+                    )
+                    result_payload = dict(task.get("result_payload") or {})
+                    result_payload["imported_organization_id"] = organization_id
+                    result_payload["final_decision"] = "importata"
+                    agent_tasks.update(
+                        int(task_id_raw),
+                        status="imported",
+                        review_notes=request.form.get("review_notes", "").strip() or task.get("review_notes"),
+                        result_payload=result_payload,
+                    )
+                    tasks = agent_tasks.list_by_run(run_id)
+                    agent_runs.update(
+                        run_id,
+                        status=infer_run_status(tasks),
+                        output_payload={"task_counts": summarize_task_counts(tasks)},
+                    )
+                except Exception:
+                    app.logger.exception("Failed to import WB0 task from CIS 2.0 runtime")
+                    flash("Non e stato possibile importare il task WB0 nel CIS.", "error")
+                else:
+                    flash("Task WB0 importato nel CIS correttamente.", "success")
+                    return redirect(url_for("organization_detail", organization_id=organization_id))
+
+        tasks = agent_tasks.list_by_run(run_id)
+        run = agent_runs.get(run_id)
+        return render_template(
+            "agent_run_detail.html",
+            run=run,
+            tasks=tasks,
+            task_summary=summarize_task_counts(tasks),
+            agent_statuses=AGENT_STATUSES,
         )
 
     @app.route("/organizations", methods=["GET", "POST"])
@@ -1700,6 +2555,16 @@ def _clean_form_value(value: object) -> str | None:
         return None
     cleaned = str(value).strip()
     return cleaned or None
+
+
+def _normalize_external_url(value: object) -> str:
+    cleaned = str(value or "").strip()
+    if not cleaned:
+        return ""
+    lowered = cleaned.casefold()
+    if lowered.startswith(("http://", "https://", "mailto:", "tel:")):
+        return cleaned
+    return f"https://{cleaned.lstrip('/')}"
 
 
 def _parse_optional_nonnegative_int(value: str) -> int | None:

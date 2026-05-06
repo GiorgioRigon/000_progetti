@@ -16,6 +16,7 @@ from app import create_app  # noqa: E402
 from app.wb0_target_discovery import (  # noqa: E402
     build_discovery_run,
     build_prompt_preview,
+    build_search_query_pack,
     delete_discovery_run,
     load_project_sources,
     reset_latest_run,
@@ -342,6 +343,21 @@ class Wb0TargetDiscoveryTests(unittest.TestCase):
         self.assertIn("Obiettivo ricerca: Trovare enti per concerti corali.", preview)
         self.assertIn("Tipi di target: diocesi, comuni", preview)
         self.assertIn("- programmazione musicale pubblica", preview)
+
+    def test_build_search_query_pack(self) -> None:
+        query_pack = build_search_query_pack(
+            research_goal="Trovare enti che programmano musica corale.",
+            territory_target="Veneto e Lombardia",
+            target_types_text="festival\ncomuni",
+            selected_sources=["festival_websites", "cultural_directories"],
+            research_prompt="Cerca enti che ospitano musica corale o sacra.",
+            prompt_variants_text="festival corale veneto\nmusica sacra comuni lombardia",
+            inclusion_criteria_text="programmazione musicale pubblica\nente attivo nel territorio",
+        )
+        self.assertGreaterEqual(len(query_pack), 4)
+        self.assertIn("Cerca enti che ospitano musica corale o sacra.", query_pack)
+        self.assertIn("festival corale veneto", query_pack)
+        self.assertTrue(any("festival Veneto e Lombardia" in item for item in query_pack))
 
 
 if __name__ == "__main__":

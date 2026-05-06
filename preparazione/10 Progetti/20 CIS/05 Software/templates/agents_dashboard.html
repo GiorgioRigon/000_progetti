@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+
+{% block title %}CIS 2.0 Alpha - CIS{% endblock %}
+{% block body_class %}operational-page cis20-page{% endblock %}
+
+{% block content %}
+  <section class="page-heading">
+    <div>
+      <p class="eyebrow">CIS 2.0 Alpha</p>
+      <h1>Agent Runtime</h1>
+      <p class="muted">Queue separata dal CIS 1.0 per avviare run agentici osservabili e reviewabili.</p>
+    </div>
+    <div class="actions">
+      <a class="button button-secondary" href="{{ url_for('organizations_list') }}">Torna a CIS 1.0</a>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Queue overview</h2>
+    <dl class="detail-grid">
+      <div>
+        <dt>Task totali</dt>
+        <dd>{{ queue_summary.total }}</dd>
+      </div>
+      <div>
+        <dt>Queued</dt>
+        <dd>{{ queue_summary.queued }}</dd>
+      </div>
+      <div>
+        <dt>Review</dt>
+        <dd>{{ queue_summary.review }}</dd>
+      </div>
+      <div>
+        <dt>Approved</dt>
+        <dd>{{ queue_summary.approved }}</dd>
+      </div>
+      <div>
+        <dt>Rejected</dt>
+        <dd>{{ queue_summary.rejected }}</dd>
+      </div>
+      <div>
+        <dt>Imported</dt>
+        <dd>{{ queue_summary.imported }}</dd>
+      </div>
+      <div>
+        <dt>Archived</dt>
+        <dd>{{ queue_summary.archived }}</dd>
+      </div>
+    </dl>
+  </section>
+
+  <section class="grid-two">
+    <section class="card">
+      <h2>Crea missione WB0</h2>
+      <p class="muted">Avvia un run WB0 gia dal brief di ricerca, senza passare subito da una lista candidati compilata a mano.</p>
+      <form class="stack" method="post" action="{{ url_for('agents_dashboard') }}">
+        <input type="hidden" name="form_type" value="create_wb0_mission_run">
+        <label for="research_goal">Obiettivo ricerca</label>
+        <textarea id="research_goal" name="research_goal" rows="3" required placeholder="Che tipo di lead vuoi trovare e per quale scopo operativo?"></textarea>
+        <label for="project_context">Contesto progetto</label>
+        <textarea id="project_context" name="project_context" rows="3" required placeholder="Descrivi offerta, posizionamento e vincoli utili alla ricerca."></textarea>
+        <label for="territory_target">Territorio target</label>
+        <input id="territory_target" name="territory_target" type="text" required placeholder="Es. Veneto, Italia nord, Lombardia e Emilia-Romagna">
+        <label for="target_types">Tipi di target</label>
+        <textarea id="target_types" name="target_types" rows="4" required placeholder="Una voce per riga: festival, comuni, aziende, associazioni..."></textarea>
+        <fieldset class="source-fieldset">
+          <legend>Fonti da interrogare</legend>
+          {% for source in available_sources %}
+            <label class="checkbox-row">
+              <input type="checkbox" name="selected_sources" value="{{ source.name }}">
+              <span>
+                <strong>{{ source.name }}</strong>
+                {% if source.notes %}
+                  <span class="muted">{{ source.notes }}</span>
+                {% endif %}
+              </span>
+            </label>
+          {% endfor %}
+        </fieldset>
+        <label for="research_prompt">Prompt base</label>
+        <textarea id="research_prompt" name="research_prompt" rows="5" placeholder="Scrivi la traccia base della ricerca o del chatbot che userai."></textarea>
+        <label for="prompt_variants">Varianti di prompt o query</label>
+        <textarea id="prompt_variants" name="prompt_variants" rows="4" placeholder="Una variante per riga."></textarea>
+        <label for="inclusion_criteria">Criteri di inclusione</label>
+        <textarea id="inclusion_criteria" name="inclusion_criteria" rows="4" required placeholder="Una riga per criterio."></textarea>
+        <label for="exclusion_criteria">Criteri di esclusione</label>
+        <textarea id="exclusion_criteria" name="exclusion_criteria" rows="4" placeholder="Una riga per criterio."></textarea>
+        <button type="submit">Crea missione WB0</button>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Crea run WB0</h2>
+      <p class="muted">Porta un discovery run WB0 del CIS 1.0 dentro la queue agentica 2.0.</p>
+      <form class="stack" method="post" action="{{ url_for('agents_dashboard') }}">
+        <input type="hidden" name="form_type" value="create_wb0_run">
+        <label for="source_run_file">Run WB0 salvato</label>
+        <select id="source_run_file" name="source_run_file">
+          <option value="">Seleziona un run</option>
+          {% for item in available_wb0_runs %}
+            <option value="{{ item.filename }}">{{ item.research_goal }} | {{ item.created_at }} | {{ item.candidate_count }} candidate</option>
+          {% endfor %}
+        </select>
+        <button type="submit">Crea run WB0</button>
+      </form>
+    </section>
+  </section>
+
+  <section class="card">
+      <h2>Crea run WB1</h2>
+      <p class="muted">Crea un batch di organization da portare in review di arricchimento nel runtime 2.0.</p>
+      <form class="stack" method="post" action="{{ url_for('agents_dashboard') }}">
+        <input type="hidden" name="form_type" value="create_wb1_run">
+        <label for="filter_mode">Filtro batch</label>
+        <select id="filter_mode" name="filter_mode">
+          <option value="without_contacts_first">prima senza contatti</option>
+          <option value="alphabetical">alfabetico</option>
+        </select>
+        <label for="batch_size">Batch size</label>
+        <input id="batch_size" name="batch_size" type="number" min="1" step="1" value="10">
+        <button type="submit">Crea run WB1</button>
+      </form>
+      {% if wb1_candidates_preview %}
+        <p class="muted">Prime organization candidate del progetto attivo:</p>
+        <ul class="plain-list">
+          {% for item in wb1_candidates_preview %}
+            <li>{{ item.name }} | contatti: {{ item.contact_count }}{% if item.email %} | {{ item.email }}{% endif %}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+  </section>
+
+  <section class="card">
+      <h2>Crea run WB1 singolo lead</h2>
+      <p class="muted">Avvia `WB1` su una sola organization gia scelta.</p>
+      <form class="stack" method="post" action="{{ url_for('agents_dashboard') }}">
+        <input type="hidden" name="form_type" value="create_wb1_single_run">
+        <label for="wb1_single_organization">Organization</label>
+        <select id="wb1_single_organization" name="organization_id">
+          <option value="">Seleziona una organization</option>
+          {% for item in wb1_candidates %}
+            <option value="{{ item.id }}">{{ item.name }} | contatti: {{ item.contact_count }}{% if item.email %} | {{ item.email }}{% endif %}</option>
+          {% endfor %}
+        </select>
+        <button type="submit">Crea run WB1 singolo lead</button>
+      </form>
+  </section>
+
+  <section class="card">
+      <h2>Crea run WB2</h2>
+      <p class="muted">Crea un batch di organization per ricerca contatti, social e dettagli organizzativi nel runtime 2.0.</p>
+      <form class="stack" method="post" action="{{ url_for('agents_dashboard') }}">
+        <input type="hidden" name="form_type" value="create_wb2_run">
+        <label for="filter_mode_wb2">Filtro batch</label>
+        <select id="filter_mode_wb2" name="filter_mode">
+          <option value="without_contacts_first">prima senza contatti</option>
+          <option value="alphabetical">alfabetico</option>
+        </select>
+        <label for="batch_size_wb2">Batch size</label>
+        <input id="batch_size_wb2" name="batch_size" type="number" min="1" step="1" value="10">
+        <button type="submit">Crea run WB2</button>
+      </form>
+      {% if wb2_candidates_preview %}
+        <p class="muted">Prime organization candidate del progetto attivo:</p>
+        <ul class="plain-list">
+          {% for item in wb2_candidates_preview %}
+            <li>{{ item.name }} | contatti: {{ item.contact_count }}{% if item.website %} | {{ item.website }}{% endif %}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+  </section>
+
+  <section class="card">
+      <h2>Crea run WB2 singolo lead</h2>
+      <p class="muted">Avvia `WB2` su una sola organization gia scelta.</p>
+      <form class="stack" method="post" action="{{ url_for('agents_dashboard') }}">
+        <input type="hidden" name="form_type" value="create_wb2_single_run">
+        <label for="wb2_single_organization">Organization</label>
+        <select id="wb2_single_organization" name="organization_id">
+          <option value="">Seleziona una organization</option>
+          {% for item in wb2_candidates %}
+            <option value="{{ item.id }}">{{ item.name }} | contatti: {{ item.contact_count }}{% if item.website %} | {{ item.website }}{% endif %}</option>
+          {% endfor %}
+        </select>
+        <button type="submit">Crea run WB2 singolo lead</button>
+      </form>
+  </section>
+
+  <section class="card">
+    <h2>Run agenti</h2>
+    {% if project_runs %}
+      <div class="stack">
+        {% for run in project_runs %}
+          <article class="subcard stack">
+            <div class="list-row">
+              <div>
+                <h3><a href="{{ url_for('agent_run_detail', run_id=run.id) }}">{{ run.title }}</a></h3>
+                <p class="muted">{{ run.agent_key }} | {{ run.status }} | {{ run.created_at }}</p>
+                {% if run.objective %}
+                  <p class="muted">{{ run.objective }}</p>
+                {% endif %}
+              </div>
+              <div>
+                <strong>{{ run.task_count or 0 }} task</strong>
+                <p class="muted">review {{ run.review_count or 0 }} | approved {{ run.approved_count or 0 }} | imported {{ run.imported_count or 0 }}</p>
+              </div>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="muted">Nessun run agente creato per il progetto attivo.</p>
+    {% endif %}
+  </section>
+{% endblock %}
